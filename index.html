@@ -498,17 +498,17 @@ tbody td{padding:13px 16px;color:var(--c-text);vertical-align:middle;}
         <p>Vue d'ensemble de toutes les activités.</p>
       </div>
       <div class="stats-row">
-        <div class="stat-card">
+        <div class="stat-card" style="cursor:pointer;transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" ondblclick="filterByStatus('all')">
           <div class="stat-label">Total activités</div>
           <div class="stat-value" id="stat-total">0</div>
           <div class="stat-sub">enregistrements</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" style="cursor:pointer;transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" ondblclick="filterByStatus('pending')">
           <div class="stat-label">En attente</div>
           <div class="stat-value" id="stat-pending" style="color:var(--c-warning)">0</div>
           <div class="stat-sub">à livrer</div>
         </div>
-        <div class="stat-card" style="cursor:pointer;transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" ondblclick="toggleDelivered()">
+        <div class="stat-card" style="cursor:pointer;transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" ondblclick="filterByStatus('done')">
           <div class="stat-label">Livrées</div>
           <div class="stat-value" id="stat-done" style="color:var(--c-success)">0</div>
           <div class="stat-sub">complétées</div>
@@ -558,7 +558,7 @@ const USERS = {
   gestionnaire: { pass: 'gest456', name: 'Gestionnaire', initials: 'GS' }
 };
 
-const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyjVqz83wQHJIkQ57N-iyYwtGlmmByj6R1Kry5c89RdUA4GsdnXfW79XiGjDf4UEwBTeA/exec';
+const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxhzOSw_L2z8FdAf4fWcY4Ef-qEjoL30S17oayDgxbKaSh-MCSGoekwPcpnVPMCbc9spA/exec';
 
 const STOCK_ITEMS = [
   { id:1,  ref:'ATCL-1',  name:'Autocollant plastique',    desc:'Avec motif largeur 0.5m',              prix:'5000/m',        fournisseur:'TSARAHALANA',                         unit:'m',       qty:0,    min:5,   max:5   },
@@ -623,12 +623,13 @@ let selectedStock = [];
 let showCompletedActivities = false;
 let currentUser = null;
 let showDelivered = false; // Toggle pour afficher les activités livrées
+let filterStatus = 'pending'; // 'all', 'pending', 'done'
 let autoSyncInterval = null; // Pour la synchronisation automatique
 
 /* ── SYNC GOOGLE SHEETS ── */
-function loadActivitiesFromSheets() {
+function loadActivitiesFromSheets(retryCount = 0) {
   const loader = document.getElementById('sync-loader');
-  if (loader) loader.style.display = 'flex';
+  if (loader && retryCount === 0) loader.style.display = 'flex';
   
   fetch(GOOGLE_SHEETS_URL, {
     method: 'POST',
@@ -672,11 +673,19 @@ function loadActivitiesFromSheets() {
     })
     .catch(err => {
       console.error('Erreur sync sheets:', err);
-      if (loader) loader.style.display = 'none';
-      const saved = localStorage.getItem('gestact_activities');
-      if (saved) {
-        activities = JSON.parse(saved);
-        renderActivities();
+      // Retry une fois après 2 secondes
+      if (retryCount < 1) {
+        setTimeout(function() {
+          loadActivitiesFromSheets(retryCount + 1);
+        }, 2000);
+      } else {
+        if (loader) loader.style.display = 'none';
+        // Fallback: affiche au moins le localStorage
+        const saved = localStorage.getItem('gestact_activities');
+        if (saved) {
+          activities = JSON.parse(saved);
+          renderActivities();
+        }
       }
     });
 }
@@ -1031,20 +1040,31 @@ function renderRavHistory() {
 }
 
 /* ── ACTIVITES (onglet 4) ── */
-function toggleDelivered() {
-  showDelivered = !showDelivered;
+function filterByStatus(status) {
+  filterStatus = status;
   renderActivities();
-  // Update visual indicator
-  const delivered = document.querySelectorAll('.stat-card')[2]; // Le 3ème stat-card (Livrées)
-  if (delivered) {
-    if (showDelivered) {
-      delivered.style.background = 'rgba(45, 122, 79, 0.1)';
-      delivered.style.borderLeft = '3px solid var(--c-success)';
-    } else {
-      delivered.style.background = '';
-      delivered.style.borderLeft = '';
-    }
+  updateFilterStyles();
+}
+
+function updateFilterStyles() {
+  const statCards = document.querySelectorAll('.stat-card');
+  statCards.forEach(function(card, idx) {
+    card.style.borderLeft = '';
+    card.style.background = '';
+  });
+  
+  // Index 0 = Total, 1 = En attente, 2 = Livrés
+  const activeCard = filterStatus === 'all' ? 0 : (filterStatus === 'pending' ? 1 : 2);
+  if (statCards[activeCard]) {
+    statCards[activeCard].style.borderLeft = '3px solid var(--c-accent)';
+    statCards[activeCard].style.background = 'rgba(194, 91, 42, 0.08)';
   }
+}
+
+function toggleDelivered() {
+  filterStatus = filterStatus === 'done' ? 'pending' : 'done';
+  renderActivities();
+  updateFilterStyles();
 }
 
 function renderActivities(q) {
@@ -1053,10 +1073,13 @@ function renderActivities(q) {
     return a.title.toLowerCase().includes(q.toLowerCase());
   });
   
-  // Filtrer selon showDelivered
-  if (!showDelivered) {
-    list = list.filter(function(a){ return a.status !== 'done'; });
+  // Filtrer selon filterStatus
+  if (filterStatus === 'pending') {
+    list = list.filter(function(a){ return a.status === 'pending'; });
+  } else if (filterStatus === 'done') {
+    list = list.filter(function(a){ return a.status === 'done'; });
   }
+  // Si filterStatus === 'all', on affiche tout
   
   document.getElementById('stat-total').textContent = activities.length;
   document.getElementById('stat-pending').textContent = activities.filter(function(a){ return a.status==='pending'; }).length;
