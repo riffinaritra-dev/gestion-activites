@@ -368,6 +368,34 @@ tbody td{padding:13px 16px;color:var(--c-text);vertical-align:middle;}
               <textarea id="f-notes" placeholder="Informations complémentaires sur l'activité…"></textarea>
             </div>
           </div>
+          
+          <!-- SECTION PAIEMENT -->
+          <div class="form-row" style="margin-top:30px;border-top:1px solid var(--c-border);padding-top:20px;">
+            <div class="form-group span2" style="font-size:12px;text-transform:uppercase;letter-spacing:0.6px;font-weight:600;color:var(--c-accent);margin-bottom:15px;">
+              PAIEMENT
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group span2">
+              <label>Prix</label>
+              <input type="number" id="f-prix" placeholder="0" min="0" step="100" oninput="calculResteAPayer()">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group span2">
+              <label>Montant Payé</label>
+              <input type="number" id="f-montant-paye" placeholder="0" min="0" step="100" oninput="calculResteAPayer()">
+            </div>
+          </div>
+          <div id="reste-section" style="display:none;">
+            <div class="form-row">
+              <div class="form-group span2" style="background:var(--c-surface2);padding:15px;border-radius:8px;border-left:3px solid var(--c-warning);">
+                <label style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;color:var(--c-warning);">Reste à Payer</label>
+                <div id="reste-montant" style="font-size:24px;font-weight:700;color:var(--c-warning);margin-top:8px;">0 Ar</div>
+              </div>
+            </div>
+          </div>
+          
           <div class="form-group" style="margin-top:20px;">
             <label style="margin-bottom:10px;display:block;">
               Éléments du stock <span style="color:var(--c-accent)">*</span>
@@ -558,7 +586,7 @@ const USERS = {
   gestionnaire: { pass: 'gest456', name: 'Gestionnaire', initials: 'GS' }
 };
 
-const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxhzOSw_L2z8FdAf4fWcY4Ef-qEjoL30S17oayDgxbKaSh-MCSGoekwPcpnVPMCbc9spA/exec';
+const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyLnL6p6kSTVn-YPXvlOjB9wCnq94bn4wOfafplXY2oD2vwmkl9K2O6fkLurdO3H6V1fg/exec';
 
 const STOCK_ITEMS = [
   { id:1,  ref:'ATCL-1',  name:'Autocollant plastique',    desc:'Avec motif largeur 0.5m',              prix:'5000/m',        fournisseur:'TSARAHALANA',                         unit:'m',       qty:0,    min:5,   max:5   },
@@ -625,16 +653,15 @@ let currentUser = null;
 let showDelivered = false; // Toggle pour afficher les activités livrées
 let filterStatus = 'pending'; // 'all', 'pending', 'done'
 let autoSyncInterval = null; // Pour la synchronisation automatique
+let paymentActivityId = null; // Track quelle activité est en cours de paiement
 
 /* ── SYNC GOOGLE SHEETS ── */
 function loadActivitiesFromSheets(retryCount = 0) {
   const loader = document.getElementById('sync-loader');
   if (loader && retryCount === 0) loader.style.display = 'flex';
   
-  fetch(GOOGLE_SHEETS_URL, {
-    method: 'POST',
-    body: JSON.stringify({ action: 'getAll' })
-  })
+  // Utiliser GET simple au lieu de POST pour éviter CORS
+  fetch(GOOGLE_SHEETS_URL + '?action=getAll&t=' + Date.now())
     .then(r => {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
@@ -668,23 +695,28 @@ function loadActivitiesFromSheets(retryCount = 0) {
         localStorage.setItem('gestact_activities', JSON.stringify(activities));
         renderActivities();
         if (loader) loader.style.display = 'none';
+        console.log('✅ Données chargées depuis Sheets:', activities.length);
       }
       updateBadge();
     })
     .catch(err => {
-      console.error('Erreur sync sheets:', err);
-      // Retry une fois après 2 secondes
-      if (retryCount < 1) {
+      console.error('❌ Erreur sync sheets (tentative ' + (retryCount + 1) + '):', err);
+      // Retry jusqu'à 3 fois avec délai croissant
+      if (retryCount < 3) {
+        const delai = 1000 * (retryCount + 1); // 1s, 2s, 3s
         setTimeout(function() {
+          console.log('🔄 Nouvelle tentative...');
           loadActivitiesFromSheets(retryCount + 1);
-        }, 2000);
+        }, delai);
       } else {
         if (loader) loader.style.display = 'none';
+        console.warn('⚠️ Sync échouée. Utilisation du cache local.');
         // Fallback: affiche au moins le localStorage
         const saved = localStorage.getItem('gestact_activities');
         if (saved) {
           activities = JSON.parse(saved);
           renderActivities();
+          console.log('📦 Données du cache:', activities.length);
         }
       }
     });
@@ -852,7 +884,8 @@ function renderSelectedTags() {
 
 /* ── FORM ACTIVITE ── */
 function resetForm() {
-  ['f-client','f-phone','f-notes'].forEach(function(id){ document.getElementById(id).value = ''; });
+  ['f-client','f-phone','f-notes','f-prix','f-montant-paye'].forEach(function(id){ document.getElementById(id).value = ''; });
+  document.getElementById('reste-section').style.display = 'none';
   document.getElementById('f-date-liv').value = '';
   document.getElementById('f-date-reg').value = new Date().toISOString().split('T')[0];
   selectedStock = [];
@@ -861,12 +894,32 @@ function resetForm() {
   renderSelectedTags();
 }
 
+function calculResteAPayer() {
+  const prixInput = document.getElementById('f-prix');
+  const montantPayeInput = document.getElementById('f-montant-paye');
+  const resteSection = document.getElementById('reste-section');
+  const resteMontantDiv = document.getElementById('reste-montant');
+  
+  const prix = parseFloat(prixInput.value) || 0;
+  const montantPaye = parseFloat(montantPayeInput.value) || 0;
+  const reste = prix - montantPaye;
+  
+  if (reste > 0) {
+    resteSection.style.display = 'block';
+    resteMontantDiv.textContent = reste.toLocaleString('fr-FR') + ' Ar';
+  } else {
+    resteSection.style.display = 'none';
+  }
+}
+
 function saveActivity() {
   const client  = document.getElementById('f-client').value.trim();
   const phone   = document.getElementById('f-phone').value.trim();
   const dateReg = document.getElementById('f-date-reg').value;
   const dateLiv = document.getElementById('f-date-liv').value;
   const notes   = document.getElementById('f-notes').value.trim();
+  const prix    = parseFloat(document.getElementById('f-prix').value) || 0;
+  const montantPaye = parseFloat(document.getElementById('f-montant-paye').value) || 0;
   if (!client)  { toast('Le nom du client est requis.', 'error'); return; }
   if (!phone)   { toast('Le numéro de téléphone est requis.', 'error'); return; }
   if (!dateLiv) { toast('La date de livraison est requise.', 'error'); return; }
@@ -889,6 +942,7 @@ function saveActivity() {
     id: Date.now(),
     title: 'Activité — ' + client,
     client, phone, dateReg, dateLiv, notes,
+    prix, montantPaye,
     stock: selectedStock.map(function(se){ return { id: se.id, qty: se.qty }; }),
     status: 'pending', createdBy: currentUser.name
   });
@@ -1199,6 +1253,73 @@ function updateBadge() {
 }
 
 /* ── MODAL DÉTAIL ── */
+function payReste(id, montantAjoute) {
+  const a = activities.find(function(x){ return x.id===id; });
+  if (!a) return;
+  
+  const montantAjoute_ = parseFloat(montantAjoute) || 0;
+  if (montantAjoute_ <= 0) { toast('Montant invalide.', 'error'); return; }
+  
+  a.montantPaye = (a.montantPaye || 0) + montantAjoute_;
+  const nouveau_reste = Math.max(0, (a.prix || 0) - a.montantPaye);
+  
+  saveActivityToSheets(a);
+  saveActs();
+  
+  if (nouveau_reste <= 0) {
+    toast('Paiement complété ! ✅', 'success');
+    closeModalBtn('payment-modal');
+    closeModalBtn('detail-modal');
+    showDetail(id); // Rouvre la modale pour montrer le bouton Livrer activé
+  } else {
+    toast('Paiement enregistré. Nouveau reste: ' + nouveau_reste.toLocaleString('fr-FR') + ' Ar', 'info');
+    // Réouvre le formulaire avec le nouveau reste
+    openPaymentModal(id);
+  }
+}
+
+function openPaymentModal(id) {
+  const a = activities.find(function(x){ return x.id===id; });
+  if (!a) return;
+  
+  const reste = Math.max(0, (a.prix || 0) - (a.montantPaye || 0));
+  paymentActivityId = id;
+  document.getElementById('payment-reste').textContent = reste.toLocaleString('fr-FR') + ' Ar';
+  document.getElementById('payment-input').value = '';
+  document.getElementById('payment-modal').classList.add('open');
+}
+
+function confirmPayment() {
+  if (!paymentActivityId) return;
+  const montant = document.getElementById('payment-input').value.trim();
+  if (!montant) { toast('Entrez un montant.', 'error'); return; }
+  payReste(paymentActivityId, montant);
+}
+
+function payReste_old(id, montantAjoute) {
+  const a = activities.find(function(x){ return x.id===id; });
+  if (!a) return;
+  
+  const montantAjoute_ = parseFloat(montantAjoute) || 0;
+  if (montantAjoute_ <= 0) { toast('Montant invalide.', 'error'); return; }
+  
+  a.montantPaye = (a.montantPaye || 0) + montantAjoute_;
+  const nouveau_reste = Math.max(0, (a.prix || 0) - a.montantPaye);
+  
+  saveActivityToSheets(a);
+  saveActs();
+  
+  // Ferme et rouvre la modale pour mettre à jour
+  closeModal('detail-modal');
+  showDetail(id);
+  
+  if (nouveau_reste <= 0) {
+    toast('Paiement complété ! Vous pouvez maintenant livrer.', 'success');
+  } else {
+    toast('Paiement enregistré. Reste à payer: ' + nouveau_reste.toLocaleString('fr-FR') + ' Ar', 'info');
+  }
+}
+
 function showDetail(id) {
   var a = activities.find(function(x){ return x.id===id; });
   if (!a) return;
@@ -1214,6 +1335,11 @@ function showDetail(id) {
   var statusHtml = a.status === 'done'
     ? '<span style="font-weight:600;color:var(--c-success);">✔ Livré</span>'
     : '<span style="font-weight:600;color:var(--c-warning);">⏱ En attente</span>';
+  var reste = Math.max(0, (a.prix || 0) - (a.montantPaye || 0));
+  var paymentHtml = (a.prix ? row('Prix total', '<strong>' + a.prix.toLocaleString('fr-FR') + ' Ar</strong>') : '') +
+    (a.montantPaye ? row('Montant payé', '<strong style="color:var(--c-success);">' + a.montantPaye.toLocaleString('fr-FR') + ' Ar</strong>') : '') +
+    (reste > 0 ? row('Reste à payer', '<strong style="color:var(--c-warning);">' + reste.toLocaleString('fr-FR') + ' Ar</strong>') : '');
+  
   document.getElementById('modal-body').innerHTML =
     row('Client',              '<strong>' + a.client + '</strong>') +
     row('Téléphone',           a.phone) +
@@ -1222,8 +1348,40 @@ function showDetail(id) {
     row('Description',         a.notes || '<em style="color:var(--c-text3);">Aucune description.</em>') +
     row('Articles du stock',   stockNames || '<em style="color:var(--c-text3);">—</em>') +
     row('Enregistré par',      a.createdBy) +
-    row('Statut',              statusHtml);
+    row('Statut',              statusHtml) +
+    paymentHtml;
   document.getElementById('detail-modal').classList.add('open');
+  
+  // Désactiver le bouton Livrer s'il y a du reste à payer
+  setTimeout(function() {
+    var reste = Math.max(0, (a.prix || 0) - (a.montantPaye || 0));
+    var livrerBtn = document.querySelector('[onclick*="markDone(' + a.id + ')"]');
+    if (livrerBtn && reste > 0) {
+      livrerBtn.style.opacity = '0.5';
+      livrerBtn.style.cursor = 'not-allowed';
+      livrerBtn.onclick = function(e) { 
+        e.preventDefault(); 
+        toast('Veuillez payer le reste avant de livrer.', 'error'); 
+        openPaymentModal(a.id);
+        return false;
+      };
+    }
+    // Ajouter un bouton "Payer le reste" s'il y a du reste
+    if (reste > 0) {
+      var buttonsDiv = document.querySelector('.modal-buttons');
+      if (!buttonsDiv) {
+        buttonsDiv = document.createElement('div');
+        buttonsDiv.className = 'modal-buttons';
+        buttonsDiv.style.cssText = 'display:flex;gap:10px;margin-top:20px;';
+        document.querySelector('.modal-content').appendChild(buttonsDiv);
+      }
+      var payBtn = document.createElement('button');
+      payBtn.textContent = '💳 Payer le reste (' + reste.toLocaleString('fr-FR') + ' Ar)';
+      payBtn.style.cssText = 'flex:1;padding:10px;background:var(--c-warning);color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;';
+      payBtn.onclick = function() { openPaymentModal(a.id); };
+      buttonsDiv.appendChild(payBtn);
+    }
+  }, 100);
 }
 
 function row(label, val) {
@@ -1251,5 +1409,30 @@ function toast(msg, type) {
   setTimeout(function(){ t.classList.remove('show'); }, 3200);
 }
 </script>
+
+<!-- MODALE PAIEMENT DU RESTE -->
+<div id="payment-modal" class="modal-overlay" onclick="closeModal(event)">
+  <div class="modal-content" style="max-width:500px;">
+    <div class="modal-header">
+      <h3>Payer le reste</h3>
+      <span class="modal-close" onclick="closeModalBtn('payment-modal')">×</span>
+    </div>
+    <div class="modal-body">
+      <div style="margin-bottom:20px;">
+        <div style="font-size:12px;color:var(--c-text3);text-transform:uppercase;margin-bottom:5px;">Reste à payer</div>
+        <div id="payment-reste" style="font-size:28px;font-weight:700;color:var(--c-warning);">0 Ar</div>
+      </div>
+      <div class="form-group">
+        <label>Montant à payer</label>
+        <input type="number" id="payment-input" placeholder="0" min="0" step="100">
+      </div>
+      <div style="display:flex;gap:10px;margin-top:20px;">
+        <button onclick="confirmPayment()" style="flex:1;padding:12px;background:var(--c-accent);color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;">Valider le paiement</button>
+        <button onclick="closeModalBtn('payment-modal')" style="flex:1;padding:12px;background:var(--c-surface2);color:var(--c-text);border:none;border-radius:8px;font-weight:600;cursor:pointer;">Annuler</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
