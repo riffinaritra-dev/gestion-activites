@@ -1152,6 +1152,7 @@ function renderActivities(q) {
     var isDone = a.status === 'done';
     var borderColor = isDone ? 'var(--c-success)' : 'var(--c-warning)';
     var bgColor     = isDone ? 'var(--c-success-light)' : 'var(--c-warning-light)';
+    var reste = Math.max(0, (a.prix || 0) - (a.montantPaye || 0));
     var statusLabel = isDone
       ? '<span style="font-size:12px;font-weight:600;color:var(--c-success);display:flex;align-items:center;gap:4px;"><i class="ti ti-circle-check"></i> Livré</span>'
       : '<span style="font-size:12px;font-weight:600;color:var(--c-warning);display:flex;align-items:center;gap:4px;"><i class="ti ti-clock"></i> En attente</span>';
@@ -1166,7 +1167,6 @@ function renderActivities(q) {
         var filter = isDisabled ? 'grayscale(100%)' : 'grayscale(0%)';
         return '<button id="livrer-btn-' + a.id + '" onclick="' + (isDisabled ? 'event.preventDefault();return false;' : 'markDone(' + a.id + ')') + '" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:' + bgColor + ';color:#fff;border:none;border-radius:8px;font-family:var(--font);font-size:13px;font-weight:600;cursor:' + cursor + ';transition:all 0.2s;opacity:' + opacity + ';filter:' + filter + ';pointer-events:' + (isDisabled ? 'none' : 'auto') + ';" onmouseover="' + (isDisabled ? '' : 'this.style.background=\'#1e5c39\'') + '" onmouseout="' + (isDisabled ? '' : 'this.style.background=\'#2D7A4F\'') + '" title="' + title + '" ' + (isDisabled ? 'disabled' : '') + '><i class="ti ti-check" style="font-size:14px;"></i> Livrer</button>';
       })();
-    var reste = Math.max(0, (a.prix || 0) - (a.montantPaye || 0));
     var redBtn = '<button onclick="deleteActivity(' + a.id + ')" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#B83232;color:#fff;border:none;border-radius:8px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background=\'#8c2424\'" onmouseout="this.style.background=\'#B83232\'" title="Supprimer"><i class="ti ti-trash" style="font-size:14px;"></i> Supprimer</button>';
     var prixColor = reste > 0 ? 'var(--c-warning)' : 'var(--c-text2)';
     var prixLine = a.prix ? '<div style="font-size:11px;color:var(--c-text3);text-transform:uppercase;letter-spacing:0.6px;font-weight:600;margin-top:8px;margin-bottom:2px;">Prix</div><div style="font-size:14px;font-weight:700;color:' + prixColor + ';">' + a.prix.toLocaleString('fr-FR') + ' Ar</div>' : '';
