@@ -1408,57 +1408,7 @@ function showDetail(id) {
     paymentHtml;
   document.getElementById('detail-modal').classList.add('open');
   
-  // Désactiver le bouton Livrer s'il y a du reste à payer
-  setTimeout(function() {
-    var reste = Math.max(0, (a.prix || 0) - (a.montantPaye || 0));
-    console.log('🔍 Cherche bouton avec ID:', 'livrer-btn-' + a.id, '- Reste:', reste);
-    var livrerBtn = document.getElementById('livrer-btn-' + a.id);
-    
-    if (livrerBtn) {
-      if (reste > 0) {
-        livrerBtn.style.opacity = '0.4';
-        livrerBtn.style.pointerEvents = 'none';
-        livrerBtn.style.cursor = 'not-allowed';
-        livrerBtn.style.filter = 'grayscale(100%)';
-        livrerBtn.disabled = true;
-        livrerBtn.title = '⚠️ Payez le reste (' + reste.toLocaleString('fr-FR') + ' Ar) avant de livrer';
-        console.log('🚫 Bouton Livrer désactivé - Reste: ' + reste);
-      } else {
-        livrerBtn.style.opacity = '1';
-        livrerBtn.style.pointerEvents = 'auto';
-        livrerBtn.style.cursor = 'pointer';
-        livrerBtn.style.filter = 'grayscale(0%)';
-        livrerBtn.disabled = false;
-        livrerBtn.title = 'Marquer comme livré';
-        console.log('✅ Bouton Livrer activé');
-      }
-    } else {
-      console.warn('⚠️ Bouton Livrer non trouvé avec l\'ID:', 'livrer-btn-' + a.id);
-    }
-    
-    // Ajouter un bouton "Payer le reste" s'il y a du reste
-    if (reste > 0) {
-      var buttonsDiv = document.querySelector('.modal-buttons');
-      if (!buttonsDiv) {
-        buttonsDiv = document.createElement('div');
-        buttonsDiv.className = 'modal-buttons';
-        buttonsDiv.style.cssText = 'display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;';
-        var modalContent = document.querySelector('.modal-content');
-        if (modalContent) modalContent.appendChild(buttonsDiv);
-      }
-      if (!document.getElementById('pay-reste-btn-' + a.id)) {
-        var payBtn = document.createElement('button');
-        payBtn.id = 'pay-reste-btn-' + a.id;
-        payBtn.textContent = '💳 Payer le reste (' + reste.toLocaleString('fr-FR') + ' Ar)';
-        payBtn.style.cssText = 'flex:1;min-width:200px;padding:12px;background:var(--c-warning);color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:13px;transition:background 0.2s;';
-        payBtn.onmouseover = function() { this.style.background = '#d97a29'; };
-        payBtn.onmouseout = function() { this.style.background = 'var(--c-warning)'; };
-        payBtn.onclick = function() { openPaymentModal(a.id); };
-        buttonsDiv.appendChild(payBtn);
-        console.log('➕ Bouton "Payer le reste" ajouté');
-      }
-    }
-  }, 500);
+
 }
 
 function row(label, val) {
