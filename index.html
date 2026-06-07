@@ -742,20 +742,50 @@ function saveActivityToSheets(activity) {
     .then(r => r.json())
     .then(data => {
       if (data.success) {
-        // N'appelle pas loadActivitiesFromSheets() ici pour éviter le rafraîchissement
         console.log('✅ Activité sauvegardée dans Google Sheets');
+        // Force un rechargement après 1 seconde pour que les autres utilisateurs voient
+        setTimeout(function() {
+          loadActivitiesFromSheets();
+        }, 1000);
       }
     })
     .catch(err => console.log('Erreur save sheets:', err));
 }
 
 /* ── LOGIN ── */
+function restoreSession() {
+  const session = localStorage.getItem('gestact_session');
+  if (session) {
+    try {
+      const { login } = JSON.parse(session);
+      if (USERS[login]) {
+        currentUser = { login: login, ...USERS[login] };
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        document.getElementById('user-name').textContent = currentUser.name;
+        document.getElementById('user-avatar').textContent = currentUser.initials;
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('f-date-reg').value = today;
+        renderStockList();
+        loadActivitiesFromSheets();
+        console.log('✅ Session restaurée pour:', currentUser.name);
+        return true;
+      }
+    } catch(e) {
+      console.log('Erreur restauration session');
+    }
+  }
+  return false;
+}
+
 function doLogin() {
   const u = document.getElementById('login-user').value.trim();
   const p = document.getElementById('login-pass').value;
   const err = document.getElementById('login-error');
   if (USERS[u] && USERS[u].pass === p) {
     currentUser = { login: u, ...USERS[u] };
+    // Sauvegarde la session dans localStorage
+    localStorage.setItem('gestact_session', JSON.stringify({ login: u }));
     err.style.display = 'none';
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').style.display = 'block';
@@ -770,15 +800,11 @@ function doLogin() {
     
     // Auto-sync toutes les 30 secondes pour garder les données à jour
     if (autoSyncInterval) clearInterval(autoSyncInterval);
-    // DÉSACTIVÉ : auto-sync causait un redraw constant
-    // autoSyncInterval = setInterval(function() {
-    //   loadActivitiesFromSheets();
-    // }, 30000);
-    // DÉSACTIVÉ : auto-sync causait un redraw constant
-    // if (autoSyncInterval) clearInterval(autoSyncInterval);
-    // autoSyncInterval = setInterval(function() {
-    //   loadActivitiesFromSheets();
-    // }, 10000);
+    // Synchronisation automatique toutes les 60 secondes pour la multi-utilisateur
+    if (autoSyncInterval) clearInterval(autoSyncInterval);
+    autoSyncInterval = setInterval(function() {
+      loadActivitiesFromSheets();
+    }, 60000);
   } else {
     err.style.display = 'flex';
     document.getElementById('login-error-msg').textContent = 'Identifiant ou mot de passe incorrect.';
@@ -801,6 +827,9 @@ function doLogout() {
   document.getElementById('login-error').style.display = 'none';
   selectedStock = [];
   currentUser = null;
+  // Effacer la session
+  localStorage.removeItem('gestact_session');
+  toast('Déconnecté. À bientôt ! 👋', 'info');
 }
 
 /* ── TABS ── */
@@ -1469,31 +1498,7 @@ function toast(msg, type) {
   t.classList.add('show');
   setTimeout(function(){ t.classList.remove('show'); }, 3200);
 }
+// Restaurer la session au chargement de la page
+restoreSession();
+
 </script>
-
-<!-- MODALE PAIEMENT DU RESTE -->
-<div id="payment-modal" class="modal-overlay" onclick="closeModal(event)">
-  <div class="modal-content" style="max-width:500px;">
-    <div class="modal-header">
-      <h3>Payer le reste</h3>
-      <span class="modal-close" onclick="closeModalBtn('payment-modal')">×</span>
-    </div>
-    <div class="modal-body">
-      <div style="margin-bottom:20px;">
-        <div style="font-size:12px;color:var(--c-text3);text-transform:uppercase;margin-bottom:5px;">Reste à payer</div>
-        <div id="payment-reste" style="font-size:28px;font-weight:700;color:var(--c-warning);">0 Ar</div>
-      </div>
-      <div class="form-group">
-        <label>Montant à payer</label>
-        <input type="number" id="payment-input" placeholder="0" min="0" step="100">
-      </div>
-      <div style="display:flex;gap:10px;margin-top:20px;">
-        <button onclick="confirmPayment()" style="flex:1;padding:12px;background:var(--c-accent);color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;">Valider le paiement</button>
-        <button onclick="closeModalBtn('payment-modal')" style="flex:1;padding:12px;background:var(--c-surface2);color:var(--c-text);border:none;border-radius:8px;font-weight:600;cursor:pointer;">Annuler</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-</body>
-</html>
