@@ -1155,6 +1155,20 @@ function renderActivities(q) {
       ? '<button onclick="markPending(' + a.id + ')" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#e8f5e9;color:var(--c-success);border:1.5px solid var(--c-success);border-radius:8px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;" title="Marquer en attente"><i class="ti ti-refresh" style="font-size:14px;"></i> Livré</button>'
       : '<button onclick="markDone(' + a.id + ')" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#2D7A4F;color:#fff;border:none;border-radius:8px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background=\'#1e5c39\'" onmouseout="this.style.background=\'#2D7A4F\'" title="Marquer comme livré"><i class="ti ti-check" style="font-size:14px;"></i> Livrer</button>';
     var redBtn = '<button onclick="deleteActivity(' + a.id + ')" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#B83232;color:#fff;border:none;border-radius:8px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background=\'#8c2424\'" onmouseout="this.style.background=\'#B83232\'" title="Supprimer"><i class="ti ti-trash" style="font-size:14px;"></i> Supprimer</button>';
+    var reste = Math.max(0, (a.prix || 0) - (a.montantPaye || 0));
+    var prixColor = reste > 0 ? 'var(--c-warning)' : 'var(--c-text2)';
+    var prixLine = a.prix ? '<div style="font-size:11px;color:var(--c-text3);text-transform:uppercase;letter-spacing:0.6px;font-weight:600;margin-top:8px;margin-bottom:2px;">Prix</div><div style="font-size:14px;font-weight:700;color:' + prixColor + ';">' + a.prix.toLocaleString('fr-FR') + ' Ar</div>' : '';
+    
+    var paymentForm = reste > 0 ? '<div style="margin-top:10px;display:flex;gap:8px;align-items:flex-end;">' +
+      '<div>' +
+        '<label style="font-size:11px;color:var(--c-text3);text-transform:uppercase;letter-spacing:0.6px;font-weight:600;display:block;margin-bottom:4px;">Reste à payer</label>' +
+        '<div style="font-size:16px;font-weight:700;color:var(--c-warning);">' + reste.toLocaleString('fr-FR') + ' Ar</div>' +
+      '</div>' +
+      '<div>' +
+        '<input type="number" id="pay-input-' + a.id + '" placeholder="0" min="0" step="100" style="width:100px;padding:8px;border:1.5px solid var(--c-border);border-radius:6px;font-size:12px;font-weight:600;">' +
+      '</div>' +
+      '<button onclick="payFromCard(' + a.id + ', document.getElementById(\'pay-input-' + a.id + '\').value)" style="padding:8px 14px;background:var(--c-warning);color:white;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">Valider</button>' +
+    '</div>' : '';
     var descLine = '<div style="display:flex;align-items:flex-start;gap:20px;margin-top:6px;flex-wrap:wrap;">' +
       '<div style="flex:1;min-width:180px;">' +
         '<span style="font-size:11px;text-transform:uppercase;letter-spacing:0.6px;font-weight:600;color:var(--c-text3);">Description</span>' +
@@ -1179,6 +1193,8 @@ function renderActivities(q) {
         '<div style="font-size:16px;font-weight:700;color:var(--c-text);">' + a.client + '</div>' +
         descLine +
         '<div style="margin-top:10px;">' + statusLabel + '</div>' +
+        prixLine +
+        paymentForm +
       '</div>' +
       '<div style="display:flex;gap:8px;flex-shrink:0;margin-top:2px;">' + greenBtn + redBtn + '</div>' +
     '</div>';
@@ -1278,6 +1294,34 @@ function payReste(id, montantAjoute) {
   }
 }
 
+function payFromCard(id, montant) {
+  const a = activities.find(function(x){ return x.id===id; });
+  if (!a) return;
+  
+  const montantNum = parseFloat(montant) || 0;
+  if (montantNum <= 0) { toast('Montant invalide.', 'error'); return; }
+  
+  const resteActuel = Math.max(0, (a.prix || 0) - (a.montantPaye || 0));
+  if (montantNum > resteActuel) { 
+    toast('Montant supérieur au reste à payer.', 'error'); 
+    return;
+  }
+  
+  a.montantPaye = (a.montantPaye || 0) + montantNum;
+  saveActivityToSheets(a);
+  saveActs();
+  
+  const nouveauReste = Math.max(0, (a.prix || 0) - a.montantPaye);
+  
+  if (nouveauReste <= 0) {
+    toast('✅ Paiement complété !', 'success');
+  } else {
+    toast('✓ Paiement enregistré. Reste: ' + nouveauReste.toLocaleString('fr-FR') + ' Ar', 'info');
+  }
+  
+  renderActivities();
+}
+
 function openPaymentModal(id) {
   const a = activities.find(function(x){ return x.id===id; });
   if (!a) return;
@@ -1355,17 +1399,33 @@ function showDetail(id) {
   // Désactiver le bouton Livrer s'il y a du reste à payer
   setTimeout(function() {
     var reste = Math.max(0, (a.prix || 0) - (a.montantPaye || 0));
-    var livrerBtn = document.querySelector('[onclick*="markDone(' + a.id + ')"]');
-    if (livrerBtn && reste > 0) {
-      livrerBtn.style.opacity = '0.5';
-      livrerBtn.style.cursor = 'not-allowed';
-      livrerBtn.onclick = function(e) { 
-        e.preventDefault(); 
-        toast('Veuillez payer le reste avant de livrer.', 'error'); 
-        openPaymentModal(a.id);
-        return false;
-      };
+    
+    // Chercher le bouton "Livrer" de manière plus robuste
+    var buttons = document.querySelectorAll('button');
+    var livrerBtn = null;
+    for (var i = 0; i < buttons.length; i++) {
+      if (buttons[i].innerHTML.includes('Livrer') && buttons[i].innerHTML.includes('ti-check')) {
+        livrerBtn = buttons[i];
+        break;
+      }
     }
+    
+    if (livrerBtn && reste > 0) {
+      livrerBtn.style.opacity = '0.4';
+      livrerBtn.style.pointerEvents = 'none';
+      livrerBtn.style.cursor = 'not-allowed';
+      livrerBtn.style.filter = 'grayscale(100%)';
+      livrerBtn.disabled = true;
+      livrerBtn.title = '⚠️ Payez le reste (' + reste.toLocaleString('fr-FR') + ' Ar) avant de livrer';
+    } else if (livrerBtn && reste === 0) {
+      livrerBtn.style.opacity = '1';
+      livrerBtn.style.pointerEvents = 'auto';
+      livrerBtn.style.cursor = 'pointer';
+      livrerBtn.style.filter = 'grayscale(0%)';
+      livrerBtn.disabled = false;
+      livrerBtn.title = 'Marquer comme livré';
+    }
+    
     // Ajouter un bouton "Payer le reste" s'il y a du reste
     if (reste > 0) {
       var buttonsDiv = document.querySelector('.modal-buttons');
@@ -1377,7 +1437,9 @@ function showDetail(id) {
       }
       var payBtn = document.createElement('button');
       payBtn.textContent = '💳 Payer le reste (' + reste.toLocaleString('fr-FR') + ' Ar)';
-      payBtn.style.cssText = 'flex:1;padding:10px;background:var(--c-warning);color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;';
+      payBtn.style.cssText = 'flex:1;padding:10px;background:var(--c-warning);color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;transition:background 0.2s;';
+      payBtn.onmouseover = function() { this.style.background = 'var(--c-accent)'; };
+      payBtn.onmouseout = function() { this.style.background = 'var(--c-warning)'; };
       payBtn.onclick = function() { openPaymentModal(a.id); };
       buttonsDiv.appendChild(payBtn);
     }
