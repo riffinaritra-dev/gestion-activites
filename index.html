@@ -770,14 +770,15 @@ function doLogin() {
     
     // Auto-sync toutes les 30 secondes pour garder les données à jour
     if (autoSyncInterval) clearInterval(autoSyncInterval);
-    autoSyncInterval = setInterval(function() {
-      loadActivitiesFromSheets();
-    }, 30000);
-    // Synchronisation automatique toutes les 10 secondes
-    if (autoSyncInterval) clearInterval(autoSyncInterval);
-    autoSyncInterval = setInterval(function() {
-      loadActivitiesFromSheets();
-    }, 10000);
+    // DÉSACTIVÉ : auto-sync causait un redraw constant
+    // autoSyncInterval = setInterval(function() {
+    //   loadActivitiesFromSheets();
+    // }, 30000);
+    // DÉSACTIVÉ : auto-sync causait un redraw constant
+    // if (autoSyncInterval) clearInterval(autoSyncInterval);
+    // autoSyncInterval = setInterval(function() {
+    //   loadActivitiesFromSheets();
+    // }, 10000);
   } else {
     err.style.display = 'flex';
     document.getElementById('login-error-msg').textContent = 'Identifiant ou mot de passe incorrect.';
