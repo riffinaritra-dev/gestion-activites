@@ -1273,33 +1273,35 @@ function markPending(id) {
   }
 }
 
-function deleteActivity(id) {  
-  if (!confirm('Supprimer cette activité ?')) return;  
-  const a = activities.find(function(x){ return x.id===id; });  
-  if (!a) return;    
-  activities = activities.filter(function(x){ return x.id!==id; });  
-  saveActs();    
-  // Supprimer de Google Sheets  
-  fetch(GOOGLE_SHEETS_URL, {    
-    method: 'POST',    
-    body: JSON.stringify({      
-      action: 'delete',      
-      id: a.id  // Utilise l'ID de la ligne    
-        })  
-  })    
-    .then(r => r.json())    
-    .then(data => {      
-      if (data.success) {        
-        loadActivitiesFromSheets();        toast('Activité supprimée.', 'success');      
-      }    
-    })    
-    .catch(err => {      
-      console.log('Erreur delete:', err);      
-      renderActivities();      
-      toast('Activité supprimée localement.', 'success');    
+function deleteActivity(id) {
+  if (!confirm('Supprimer cette activité ?')) return;
+  const a = activities.find(function(x){ return x.id===id; });
+  if (!a) return;
+  
+  activities = activities.filter(function(x){ return x.id!==id; });
+  saveActs();
+  
+  // Supprimer de Google Sheets avec l'ID de la ligne
+  fetch(GOOGLE_SHEETS_URL, {
+    method: 'POST',
+    body: JSON.stringify({
+      action: 'delete',
+      id: a.id
+    })
+  })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        loadActivitiesFromSheets();
+        toast('Activité supprimée.', 'success');
+      }
+    })
+    .catch(err => {
+      console.log('Erreur delete:', err);
+      renderActivities();
+      toast('Activité supprimée localement.', 'success');
     });
 }
-                             
 
 function saveActs() { localStorage.setItem('gestact_activities', JSON.stringify(activities)); }
 
