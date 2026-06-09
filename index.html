@@ -726,35 +726,35 @@ function loadActivitiesFromSheets(retryCount = 0) {
 }
 
 function saveActivityToSheets(activity, isNew) {
-  // isNew=true → appendRow (nouvelle activité)
-  // isNew non défini → update (paiement/statut)
   var action = isNew ? 'save' : 'update';
+  var rowIndex = activity.rowIndex || activity.id;
+  console.log('📤 ' + action + ' rowIndex=' + rowIndex + ' prix=' + activity.prix + ' montantPaye=' + activity.montantPaye);
   fetch(GOOGLE_SHEETS_URL, {
     method: 'POST',
     body: JSON.stringify({
-      action: action,
-      id: activity.id,
-      client: activity.client,
-      phone: activity.phone,
-      dateReg: activity.dateReg,
-      dateLiv: activity.dateLiv,
-      notes: activity.notes,
-      prix: activity.prix || 0,
-      montantPaye: activity.montantPaye || 0,
-      stock: activity.stock,
-      status: activity.status,
-      createdBy: activity.createdBy
+      action:      action,
+      rowIndex:    rowIndex,
+      client:      activity.client      || '',
+      phone:       activity.phone       || '',
+      dateReg:     activity.dateReg     || '',
+      dateLiv:     activity.dateLiv     || '',
+      notes:       activity.notes       || '',
+      stock:       activity.stock,
+      status:      activity.status      || 'pending',
+      createdBy:   activity.createdBy   || '',
+      prix:        Number(activity.prix)        || 0,
+      montantPaye: Number(activity.montantPaye) || 0
     })
   })
     .then(function(r){ return r.json(); })
     .then(function(data) {
       if (data.success) {
-        console.log('✅ Activité ' + action + ' dans Google Sheets');
+        console.log('✅ Sheets ' + action + ' OK row=' + rowIndex);
       } else {
-        console.warn('⚠️ Sheets réponse:', JSON.stringify(data));
+        console.warn('⚠️ Sheets ' + action + ' échoué:', JSON.stringify(data));
       }
     })
-    .catch(function(err){ console.log('Erreur ' + action + ' sheets:', err); });
+    .catch(function(err){ console.warn('❌ Sheets fetch erreur:', err); });
 }
 
 /* ── LOGIN ── */
@@ -989,6 +989,8 @@ function saveActivity() {
   toast('Activité enregistrée avec succès !', 'success');
   resetForm();
   updateBadge();
+  // Recharger depuis Sheets après 1.5s pour récupérer les vrais rowIndex
+  setTimeout(function(){ loadActivitiesFromSheets(); }, 1500);
 }
 
 /* ── STOCK TABLE (onglet 2) ── */
