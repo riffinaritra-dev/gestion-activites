@@ -680,7 +680,8 @@ function loadActivitiesFromSheets(retryCount = 0) {
             }
           }
           return {
-            id: a.id || Date.now(),
+            id: a.id,           // = index de ligne Sheets (1, 2, 3...) — NE PAS changer
+            rowIndex: a.id,     // copie explicite pour le delete
             title: 'Activité — ' + (a.client || ''),
             client: a.client || '',
             phone: a.phone || '',
@@ -1282,19 +1283,19 @@ function deleteActivity(id) {
   const a = activities.find(function(x){ return x.id===id; });
   if (!a) return;
   
-  // Trouver l'index de ligne Sheets : a.id est le numéro de ligne retourné par getAll (1-based)
-  const rowIndex = a.id; // a.id = index de ligne dans Sheets (tel que retourné par doGet/doPost)
+  // rowIndex = numéro de ligne Sheets (1-based, tel que retourné par getAll)
+  const rowIndex = a.rowIndex || a.id;
+  console.log('🗑️ Suppression ligne Sheets rowIndex=' + rowIndex + ' id=' + a.id);
   
   activities = activities.filter(function(x){ return x.id!==id; });
   saveActs();
   renderActivities();
   
-  // Supprimer de Google Sheets avec l'index de ligne
   fetch(GOOGLE_SHEETS_URL, {
     method: 'POST',
     body: JSON.stringify({
       action: 'delete',
-      id: rowIndex
+      rowIndex: rowIndex   // on envoie rowIndex, pas id
     })
   })
     .then(function(r){ return r.json(); })
@@ -1302,11 +1303,10 @@ function deleteActivity(id) {
       if (data.success) {
         console.log('✅ Ligne ' + rowIndex + ' supprimée de Sheets');
         toast('Activité supprimée.', 'success');
-        // Re-sync pour mettre à jour les IDs après suppression
-        setTimeout(function(){ loadActivitiesFromSheets(); }, 1000);
+        setTimeout(function(){ loadActivitiesFromSheets(); }, 800);
       } else {
-        console.warn('⚠️ Erreur suppression Sheets:', data);
-        toast('Activité supprimée localement.', 'success');
+        console.warn('⚠️ Erreur suppression Sheets:', JSON.stringify(data));
+        toast('Activité supprimée (sync Sheets échouée).', 'success');
       }
     })
     .catch(function(err) {
