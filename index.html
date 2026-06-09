@@ -689,7 +689,9 @@ function loadActivitiesFromSheets(retryCount = 0) {
             notes: a.notes || '',
             stock: stock,
             status: a.status || 'pending',
-            createdBy: a.createdBy || ''
+            createdBy: a.createdBy || '',
+            prix: parseFloat(a.prix) || 0,
+            montantPaye: parseFloat(a.montantPaye) || 0
           };
         });
         localStorage.setItem('gestact_activities', JSON.stringify(activities));
@@ -722,11 +724,15 @@ function loadActivitiesFromSheets(retryCount = 0) {
     });
 }
 
-function saveActivityToSheets(activity) {
+function saveActivityToSheets(activity, isNew) {
+  // isNew=true → appendRow (nouvelle activité)
+  // isNew non défini → update (paiement/statut)
+  var action = isNew ? 'save' : 'update';
   fetch(GOOGLE_SHEETS_URL, {
     method: 'POST',
     body: JSON.stringify({
-      action: 'save',
+      action: action,
+      id: activity.id,
       client: activity.client,
       phone: activity.phone,
       dateReg: activity.dateReg,
@@ -739,17 +745,15 @@ function saveActivityToSheets(activity) {
       createdBy: activity.createdBy
     })
   })
-    .then(r => r.json())
-    .then(data => {
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
       if (data.success) {
-        console.log('✅ Activité sauvegardée dans Google Sheets');
-        // Force un rechargement après 1 seconde pour que les autres utilisateurs voient
-        setTimeout(function() {
-          loadActivitiesFromSheets();
-        }, 1000);
+        console.log('✅ Activité ' + action + ' dans Google Sheets');
+      } else {
+        console.warn('⚠️ Sheets réponse:', JSON.stringify(data));
       }
     })
-    .catch(err => console.log('Erreur save sheets:', err));
+    .catch(function(err){ console.log('Erreur ' + action + ' sheets:', err); });
 }
 
 /* ── LOGIN ── */
@@ -800,11 +804,11 @@ function doLogin() {
     
     // Auto-sync toutes les 30 secondes pour garder les données à jour
     if (autoSyncInterval) clearInterval(autoSyncInterval);
-    // Synchronisation automatique toutes les 60 secondes pour la multi-utilisateur
+    // Synchronisation automatique toutes les 120 secondes pour la multi-utilisateur
     if (autoSyncInterval) clearInterval(autoSyncInterval);
     autoSyncInterval = setInterval(function() {
       loadActivitiesFromSheets();
-    }, 60000);
+    }, 120000);
   } else {
     err.style.display = 'flex';
     document.getElementById('login-error-msg').textContent = 'Identifiant ou mot de passe incorrect.';
@@ -979,7 +983,7 @@ function saveActivity() {
     stock: selectedStock.map(function(se){ return { id: se.id, qty: se.qty }; }),
     status: 'pending', createdBy: currentUser.name
   });
-  saveActivityToSheets(activities[0]);
+  saveActivityToSheets(activities[0], true); // isNew=true → appendRow
   localStorage.setItem('gestact_activities', JSON.stringify(activities));
   toast('Activité enregistrée avec succès !', 'success');
   resetForm();
@@ -1278,27 +1282,35 @@ function deleteActivity(id) {
   const a = activities.find(function(x){ return x.id===id; });
   if (!a) return;
   
+  // Trouver l'index de ligne Sheets : a.id est le numéro de ligne retourné par getAll (1-based)
+  const rowIndex = a.id; // a.id = index de ligne dans Sheets (tel que retourné par doGet/doPost)
+  
   activities = activities.filter(function(x){ return x.id!==id; });
   saveActs();
+  renderActivities();
   
-  // Supprimer de Google Sheets avec l'ID de la ligne
+  // Supprimer de Google Sheets avec l'index de ligne
   fetch(GOOGLE_SHEETS_URL, {
     method: 'POST',
     body: JSON.stringify({
       action: 'delete',
-      id: a.id
+      id: rowIndex
     })
   })
-    .then(r => r.json())
-    .then(data => {
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
       if (data.success) {
-        loadActivitiesFromSheets();
+        console.log('✅ Ligne ' + rowIndex + ' supprimée de Sheets');
         toast('Activité supprimée.', 'success');
+        // Re-sync pour mettre à jour les IDs après suppression
+        setTimeout(function(){ loadActivitiesFromSheets(); }, 1000);
+      } else {
+        console.warn('⚠️ Erreur suppression Sheets:', data);
+        toast('Activité supprimée localement.', 'success');
       }
     })
-    .catch(err => {
+    .catch(function(err) {
       console.log('Erreur delete:', err);
-      renderActivities();
       toast('Activité supprimée localement.', 'success');
     });
 }
@@ -1482,8 +1494,10 @@ function closeModal(e) {
   if (e.target === document.getElementById('detail-modal')) closeModalBtn();
 }
 
-function closeModalBtn() {
-  document.getElementById('detail-modal').classList.remove('open');
+function closeModalBtn(modalId) {
+  var id = modalId || 'detail-modal';
+  var el = document.getElementById(id);
+  if (el) el.classList.remove('open');
 }
 
 document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeModalBtn(); });
