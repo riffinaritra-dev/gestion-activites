@@ -1117,19 +1117,18 @@ function syncStockToSheets() {
 
 // Charger les quantités depuis Sheets et mettre à jour STOCK_ITEMS
 function loadStockFromSheets() {
-  fetch(GOOGLE_SHEETS_URL, {
-    method: 'POST',
-    body: JSON.stringify({ action: 'getStock' })
-  })
+  fetch(GOOGLE_SHEETS_URL + '?action=getStock')
     .then(function(r){ return r.json(); })
     .then(function(data) {
       if (Array.isArray(data)) {
         data.forEach(function(s) {
-          const item = STOCK_ITEMS.find(function(i){ return i.id === s.id; });
+          var item = STOCK_ITEMS.find(function(i){ return i.id === s.id; });
           if (item) item.qty = Number(s.qty) || 0;
         });
         renderStockList();
         console.log('✅ Stock chargé depuis Sheets (' + data.length + ' articles)');
+      } else {
+        console.warn('⚠️ getStock réponse inattendue:', JSON.stringify(data));
       }
     })
     .catch(function(e){ console.warn('❌ Chargement stock erreur:', e); });
@@ -1285,7 +1284,10 @@ function renderActivities(q) {
 
 function fmtDate(d) {
   if (!d) return '—';
-  var p = d.split('-');
+  // Gérer ISO 8601 : "2026-06-09T21:00:00.000Z" ou "2026-06-09"
+  var clean = String(d).split('T')[0]; // garder seulement "2026-06-09"
+  var p = clean.split('-');
+  if (p.length !== 3) return String(d);
   return p[2] + '/' + p[1] + '/' + p[0];
 }
 
