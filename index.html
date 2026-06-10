@@ -586,7 +586,7 @@ const USERS = {
   gestionnaire: { pass: 'gest456', name: 'Gestionnaire', initials: 'GS' }
 };
 
-const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyLnL6p6kSTVn-YPXvlOjB9wCnq94bn4wOfafplXY2oD2vwmkl9K2O6fkLurdO3H6V1fg/exec';
+const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwTqHSTlbkCvh3BhiC9nGDKoC3TsUsa3gZyw8Stuifz4tn7X6oIrC2u3LK5OVOnuwRMZA/exec';
 
 const STOCK_ITEMS = [
   { id:1,  ref:'ATCL-1',  name:'Autocollant plastique',    desc:'Avec motif largeur 0.5m',              prix:'5000/m',        fournisseur:'TSARAHALANA',                         unit:'m',       qty:0,    min:5,   max:5   },
@@ -727,31 +727,30 @@ function loadActivitiesFromSheets(retryCount = 0) {
 
 function saveActivityToSheets(activity, isNew) {
   var action = isNew ? 'save' : 'update';
-  var rowIndex = activity.rowIndex || activity.id;
-  console.log('📤 ' + action + ' rowIndex=' + rowIndex + ' prix=' + activity.prix + ' montantPaye=' + activity.montantPaye);
+  var payload = {
+    action:      action,
+    rowIndex:    activity.rowIndex || activity.id,
+    client:      activity.client      || '',
+    phone:       activity.phone       || '',
+    dateReg:     activity.dateReg     || '',
+    dateLiv:     activity.dateLiv     || '',
+    notes:       activity.notes       || '',
+    stock:       activity.stock       || [],
+    status:      activity.status      || 'pending',
+    createdBy:   activity.createdBy   || '',
+    prix:        Number(activity.prix)        || 0,
+    montantPaye: Number(activity.montantPaye) || 0
+  };
+  console.log('📤 ENVOI SHEETS:', JSON.stringify(payload));
   fetch(GOOGLE_SHEETS_URL, {
     method: 'POST',
-    body: JSON.stringify({
-      action:      action,
-      rowIndex:    rowIndex,
-      client:      activity.client      || '',
-      phone:       activity.phone       || '',
-      dateReg:     activity.dateReg     || '',
-      dateLiv:     activity.dateLiv     || '',
-      notes:       activity.notes       || '',
-      stock:       activity.stock,
-      status:      activity.status      || 'pending',
-      createdBy:   activity.createdBy   || '',
-      prix:        Number(activity.prix)        || 0,
-      montantPaye: Number(activity.montantPaye) || 0
-    })
+    body: JSON.stringify(payload)
   })
     .then(function(r){ return r.json(); })
-    .then(function(data) {
-      if (data.success) {
-        console.log('✅ Sheets ' + action + ' OK row=' + rowIndex);
-      } else {
-        console.warn('⚠️ Sheets ' + action + ' échoué:', JSON.stringify(data));
+    .then(function(resp) {
+      console.log('📥 RÉPONSE SHEETS:', JSON.stringify(resp));
+      if (!resp.success) {
+        console.warn('⚠️ Sheets erreur:', JSON.stringify(resp));
       }
     })
     .catch(function(err){ console.warn('❌ Sheets fetch erreur:', err); });
