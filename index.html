@@ -800,6 +800,7 @@ function doLogin() {
     renderStockList();
     // Charger depuis Google Sheets (ignorer le localStorage vide)
     loadActivitiesFromSheets();
+    loadStockFromSheets();
     updateBadge();
     
     // Auto-sync toutes les 30 secondes pour garder les données à jour
@@ -808,6 +809,7 @@ function doLogin() {
     if (autoSyncInterval) clearInterval(autoSyncInterval);
     autoSyncInterval = setInterval(function() {
       loadActivitiesFromSheets();
+      loadStockFromSheets();
     }, 120000);
   } else {
     err.style.display = 'flex';
@@ -1077,7 +1079,7 @@ function updateRavPreview() {
   const item = STOCK_ITEMS.find(function(i){ return i.ref === ref; });
   if (!item) return;
   const qty = parseInt(document.getElementById('rav-qty').value) || 0;
-  document.getElementById('rav-after').textContent = Math.min(item.qty + qty, item.max);
+  document.getElementById('rav-after').textContent = item.qty + qty; // max = indicateur seulement
   document.getElementById('rav-current').textContent = item.qty;
 }
 
@@ -1087,18 +1089,50 @@ function doRavitaillement() {
   const item = STOCK_ITEMS.find(function(i){ return i.ref === ref; });
   if (!item) { toast("Identifiant d'article invalide.", 'error'); return; }
   if (!qty || qty <= 0) { toast('Saisissez une quantité valide.', 'error'); return; }
-  const added = Math.min(qty, item.max - item.qty);
-  if (added <= 0) { toast('Le stock est déjà au maximum.', 'error'); return; }
-  item.qty += added;
+  item.qty += qty;
   ravHistory.unshift({
     id: Date.now(), ref: item.ref, name: item.name,
-    qty: added, date: new Date().toISOString().split('T')[0], by: currentUser.name
+    qty: qty, date: new Date().toISOString().split('T')[0], by: currentUser.name
   });
   localStorage.setItem('gestact_rav', JSON.stringify(ravHistory));
-  toast('+' + added + ' unité(s) ajoutée(s) à "' + item.name + '".', 'success');
+  toast('+' + qty + ' unité(s) ajoutée(s) à "' + item.name + '".', 'success');
+  // Syncer les quantités vers Google Sheets pour tous les utilisateurs
+  syncStockToSheets();
   renderStockList();
   renderRavHistory();
   lookupArticle();
+}
+
+// Sauvegarder toutes les quantités de stock dans Sheets
+function syncStockToSheets() {
+  const qtys = STOCK_ITEMS.map(function(i){ return { id: i.id, qty: i.qty }; });
+  fetch(GOOGLE_SHEETS_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'saveStock', qtys: qtys })
+  })
+    .then(function(r){ return r.json(); })
+    .then(function(d){ console.log('✅ Stock synced:', d); })
+    .catch(function(e){ console.warn('❌ Sync stock erreur:', e); });
+}
+
+// Charger les quantités depuis Sheets et mettre à jour STOCK_ITEMS
+function loadStockFromSheets() {
+  fetch(GOOGLE_SHEETS_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'getStock' })
+  })
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+      if (Array.isArray(data)) {
+        data.forEach(function(s) {
+          const item = STOCK_ITEMS.find(function(i){ return i.id === s.id; });
+          if (item) item.qty = Number(s.qty) || 0;
+        });
+        renderStockList();
+        console.log('✅ Stock chargé depuis Sheets (' + data.length + ' articles)');
+      }
+    })
+    .catch(function(e){ console.warn('❌ Chargement stock erreur:', e); });
 }
 
 function resetRav() {
