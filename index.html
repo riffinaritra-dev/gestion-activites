@@ -772,6 +772,8 @@ function restoreSession() {
         document.getElementById('f-date-reg').value = today;
         renderStockList();
         loadActivitiesFromSheets();
+        loadStockFromSheets();      // ← sync stock au démarrage
+        loadRavHistoryFromSheets(); // ← sync historique au démarrage
         console.log('✅ Session restaurée pour:', currentUser.name);
         return true;
       }
@@ -801,6 +803,7 @@ function doLogin() {
     // Charger depuis Google Sheets (ignorer le localStorage vide)
     loadActivitiesFromSheets();
     loadStockFromSheets();
+    loadRavHistoryFromSheets();
     updateBadge();
     
     // Auto-sync toutes les 30 secondes pour garder les données à jour
@@ -810,6 +813,7 @@ function doLogin() {
     autoSyncInterval = setInterval(function() {
       loadActivitiesFromSheets();
       loadStockFromSheets();
+      loadRavHistoryFromSheets();
     }, 120000);
   } else {
     err.style.display = 'flex';
@@ -1090,17 +1094,43 @@ function doRavitaillement() {
   if (!item) { toast("Identifiant d'article invalide.", 'error'); return; }
   if (!qty || qty <= 0) { toast('Saisissez une quantité valide.', 'error'); return; }
   item.qty += qty;
-  ravHistory.unshift({
+  var entry = {
     id: Date.now(), ref: item.ref, name: item.name,
     qty: qty, date: new Date().toISOString().split('T')[0], by: currentUser.name
-  });
-  localStorage.setItem('gestact_rav', JSON.stringify(ravHistory));
-  toast('+' + qty + ' unité(s) ajoutée(s) à "' + item.name + '".', 'success');
-  // Syncer les quantités vers Google Sheets pour tous les utilisateurs
+  };
+  ravHistory.unshift(entry);
+  // Sauvegarder dans Sheets (partagé) au lieu du localStorage
   syncStockToSheets();
+  saveRavEntryToSheets(entry);
+  toast('+' + qty + ' unité(s) ajoutée(s) à "' + item.name + '".', 'success');
   renderStockList();
   renderRavHistory();
   lookupArticle();
+}
+
+// Sauvegarder une entrée de ravitaillement dans Sheets
+function saveRavEntryToSheets(entry) {
+  fetch(GOOGLE_SHEETS_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'saveRav', entry: entry })
+  })
+    .then(function(r){ return r.json(); })
+    .then(function(d){ console.log('✅ Rav sauvegardé:', d); })
+    .catch(function(e){ console.warn('❌ saveRav erreur:', e); });
+}
+
+// Charger l'historique de ravitaillement depuis Sheets
+function loadRavHistoryFromSheets() {
+  fetch(GOOGLE_SHEETS_URL + '?action=getRav')
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+      if (Array.isArray(data)) {
+        ravHistory = data;
+        renderRavHistory();
+        console.log('✅ Historique rav chargé (' + data.length + ' entrées)');
+      }
+    })
+    .catch(function(e){ console.warn('❌ loadRav erreur:', e); });
 }
 
 // Sauvegarder toutes les quantités de stock dans Sheets
@@ -1120,18 +1150,37 @@ function loadStockFromSheets() {
   fetch(GOOGLE_SHEETS_URL + '?action=getStock')
     .then(function(r){ return r.json(); })
     .then(function(data) {
-      if (Array.isArray(data)) {
+      if (Array.isArray(data) && data.length > 0) {
+        // Sheets a des données → les appliquer
         data.forEach(function(s) {
           var item = STOCK_ITEMS.find(function(i){ return i.id === s.id; });
           if (item) item.qty = Number(s.qty) || 0;
         });
         renderStockList();
         console.log('✅ Stock chargé depuis Sheets (' + data.length + ' articles)');
+      } else if (Array.isArray(data) && data.length === 0) {
+        // Sheets vide → premier lancement, initialiser avec les qty du HTML
+        console.log('📤 Initialisation stock dans Sheets...');
+        syncStockToSheets();
       } else {
         console.warn('⚠️ getStock réponse inattendue:', JSON.stringify(data));
       }
     })
     .catch(function(e){ console.warn('❌ Chargement stock erreur:', e); });
+}
+
+// Charger l'historique de ravitaillement depuis Sheets
+function loadRavFromSheets() {
+  fetch(GOOGLE_SHEETS_URL + '?action=getRav')
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+      if (Array.isArray(data)) {
+        ravHistory = data;
+        renderRavHistory();
+        console.log('✅ Historique rav chargé (' + data.length + ' entrées)');
+      }
+    })
+    .catch(function(e){ console.warn('❌ Chargement rav erreur:', e); });
 }
 
 function resetRav() {
