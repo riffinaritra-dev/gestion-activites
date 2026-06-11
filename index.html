@@ -848,8 +848,12 @@ function switchTab(id, btn) {
 function renderStockList() {
   const q = (document.getElementById('stock-filter') ? document.getElementById('stock-filter').value : '').toLowerCase();
   const ul = document.getElementById('stock-list');
-  if (!ul) { console.log('⚠️ renderStockList: #stock-list absent du DOM'); return; }
-  console.log('🔄 renderStockList appelé, id:2 qty=' + (STOCK_ITEMS.find(function(i){return i.id===2;}) || {}).qty);
+  if (!ul) return;
+  // Ne pas afficher si le stock n'est pas encore chargé depuis Sheets
+  if (!window.stockLoaded) {
+    ul.innerHTML = '<div style="padding:20px;text-align:center;color:var(--c-text3);font-size:13px;"><i class="ti ti-loader" style="animation:spin 1s linear infinite;margin-right:6px;"></i>Chargement du stock...</div>';
+    return;
+  }
   ul.innerHTML = '';
   STOCK_ITEMS.filter(function(i){ return i.name.toLowerCase().includes(q) || i.ref.toLowerCase().includes(q); })
     .forEach(function(item) {
@@ -1168,11 +1172,13 @@ function loadStockFromSheets() {
           var item = STOCK_ITEMS.find(function(i){ return i.id === s.id; });
           if (item) item.qty = Number(s.qty) || 0;
         });
+        window.stockLoaded = true;
         renderStockList();
         console.log('✅ Stock chargé depuis Sheets (' + data.length + ' articles)');
       } else if (Array.isArray(data) && data.length === 0) {
         // Sheets vide → initialiser avec les valeurs par défaut du HTML
         console.log('📤 Sheets Stock vide, initialisation avec valeurs par défaut...');
+        window.stockLoaded = true;
         renderStockList();
         syncStockToSheets(); // Envoie les qty actuelles vers Sheets (une seule fois)
       } else {
