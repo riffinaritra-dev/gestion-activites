@@ -990,11 +990,12 @@ function saveActivity() {
       return;
     }
   }
-  // Déduire les quantités du stock
+  // Déduire les quantités du stock et syncer vers Sheets
   selectedStock.forEach(function(se) {
     var sit = STOCK_ITEMS.find(function(i){ return i.id === se.id; });
     if (sit) sit.qty = Math.max(0, sit.qty - se.qty);
   });
+  syncStockToSheets(); // ← persister les nouvelles qty dans Sheets
   activities.unshift({
     id: Date.now(),
     title: 'Activité — ' + client,
@@ -1413,10 +1414,19 @@ function deleteActivity(id) {
   const rowIndex = a.rowIndex || a.id;
   console.log('🗑️ Suppression ligne Sheets rowIndex=' + rowIndex + ' id=' + a.id);
   
+  // Remettre les qty du stock supprimé
+  var stockToRestore = parseStockStr(a.stock);
+  if (Array.isArray(a.stock)) stockToRestore = a.stock;
+  stockToRestore.forEach(function(se) {
+    var sit = STOCK_ITEMS.find(function(i){ return i.id === se.id; });
+    if (sit) sit.qty += Number(se.qty) || 0;
+  });
+  if (stockToRestore.length > 0) syncStockToSheets(); // remettre les qty dans Sheets
+
   activities = activities.filter(function(x){ return x.id!==id; });
   saveActs();
   renderActivities();
-  
+
   fetch(GOOGLE_SHEETS_URL, {
     method: 'POST',
     body: JSON.stringify({
