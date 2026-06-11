@@ -118,6 +118,20 @@ body{font-family:var(--font);background:var(--c-bg);color:var(--c-text);min-heig
 .stock-search input:focus{border-color:var(--c-accent);}
 .stock-search .search-icon{position:absolute;left:24px;top:50%;transform:translateY(-50%);
   color:var(--c-text3);font-size:14px;}
+.btn-admin-sub{padding:8px 16px;border-radius:8px;border:1.5px solid var(--c-border);background:var(--c-surface);color:var(--c-text2);font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:all 0.15s;}
+.btn-admin-sub:hover{border-color:var(--c-accent);color:var(--c-accent);}
+.btn-admin-sub.active{background:var(--c-accent);color:#fff;border-color:var(--c-accent);}
+.admin-section{}
+.admin-user-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:8px;background:var(--c-surface2);margin-bottom:8px;}
+.admin-user-row .user-info{display:flex;align-items:center;gap:12px;}
+.admin-art-row{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-radius:7px;cursor:pointer;transition:background 0.1s;}
+.admin-art-row:hover{background:var(--c-surface2);}
+.admin-log-row{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--c-border);}
+.admin-log-row:last-child{border-bottom:none;}
+.log-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.btn-danger{padding:7px 14px;border-radius:7px;border:none;background:#fee2e2;color:#dc2626;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;}
+.btn-danger:hover{background:#fca5a5;}
+.btn-secondary{padding:9px 18px;border-radius:8px;border:1.5px solid var(--c-border);background:var(--c-surface);color:var(--c-text2);font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
 .stock-list{max-height:200px;overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:3px;}
 .stock-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:7px;
   cursor:pointer;transition:background 0.15s;user-select:none;}
@@ -331,6 +345,9 @@ tbody td{padding:13px 16px;color:var(--c-text);vertical-align:middle;}
       <i class="ti ti-list"></i> Liste des activités
       <span id="tab-badge" style="background:var(--c-accent);color:#fff;font-size:11px;padding:1px 7px;border-radius:10px;font-weight:600;">0</span>
     </button>
+    <button class="tab-btn admin-only" id="btn-tab-admin" onclick="switchTab('admin',this)" style="display:none;">
+      <i class="ti ti-shield-lock"></i> Administration
+    </button>
   </nav>
 
   <!-- TAB 1 : ENREGISTRER -->
@@ -446,6 +463,158 @@ tbody td{padding:13px 16px;color:var(--c-text);vertical-align:middle;}
         </div>
         <div id="stock-table-container"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- TAB 5 : ADMINISTRATION (admin only) -->
+  <div id="tab-admin" class="tab-content">
+    <div class="page">
+      <div class="page-header">
+        <h2><i class="ti ti-shield-lock" style="color:var(--c-accent);margin-right:8px;"></i>Administration</h2>
+        <p>Gestion avancée réservée à l'administrateur.</p>
+      </div>
+
+      <!-- Sous-navigation admin -->
+      <div style="display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap;">
+        <button class="btn-admin-sub active" id="adminsub-users" onclick="showAdminSection('users',this)">
+          <i class="ti ti-users"></i> Utilisateurs
+        </button>
+        <button class="btn-admin-sub" id="adminsub-articles" onclick="showAdminSection('articles',this)">
+          <i class="ti ti-package"></i> Articles stock
+        </button>
+        <button class="btn-admin-sub" id="adminsub-logs" onclick="showAdminSection('logs',this)">
+          <i class="ti ti-history"></i> Historique actions
+        </button>
+        <button class="btn-admin-sub" id="adminsub-export" onclick="showAdminSection('export',this)">
+          <i class="ti ti-download"></i> Export CSV
+        </button>
+        <button class="btn-admin-sub" id="adminsub-activities" onclick="showAdminSection('activities',this)">
+          <i class="ti ti-edit"></i> Modifier activités
+        </button>
+      </div>
+
+      <!-- Section : Utilisateurs -->
+      <div id="admin-section-users" class="admin-section">
+        <div class="form-card" style="margin-bottom:20px;">
+          <h3 style="font-size:15px;font-weight:700;margin-bottom:16px;color:var(--c-text);">
+            <i class="ti ti-users" style="color:var(--c-accent);margin-right:6px;"></i>Utilisateurs enregistrés
+          </h3>
+          <div id="admin-users-list"></div>
+          <hr style="margin:20px 0;border:none;border-top:1px solid var(--c-border);">
+          <h3 style="font-size:15px;font-weight:700;margin-bottom:16px;color:var(--c-text);">
+            <i class="ti ti-user-plus" style="color:var(--c-accent);margin-right:6px;"></i>Ajouter un utilisateur
+          </h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;">
+            <div class="form-group"><label class="form-label">Identifiant</label>
+              <input class="form-input" id="new-user-login" placeholder="ex: marie" autocomplete="off"></div>
+            <div class="form-group"><label class="form-label">Mot de passe</label>
+              <input class="form-input" id="new-user-pass" type="password" placeholder="••••••••" autocomplete="new-password"></div>
+            <div class="form-group"><label class="form-label">Nom affiché</label>
+              <input class="form-input" id="new-user-name" placeholder="ex: Marie Dupont"></div>
+          </div>
+          <button class="btn-primary" onclick="adminAddUser()">
+            <i class="ti ti-plus"></i> Ajouter l'utilisateur
+          </button>
+        </div>
+      </div>
+
+      <!-- Section : Articles stock -->
+      <div id="admin-section-articles" class="admin-section" style="display:none;">
+        <div class="form-card" style="margin-bottom:20px;">
+          <h3 style="font-size:15px;font-weight:700;margin-bottom:16px;color:var(--c-text);">
+            <i class="ti ti-package" style="color:var(--c-accent);margin-right:6px;"></i>Modifier un article
+          </h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+            <div class="form-group"><label class="form-label">Référence article</label>
+              <input class="form-input" id="edit-art-ref" placeholder="ex: CDR-1" oninput="adminLookupArticle(this.value)"></div>
+            <div class="form-group"><label class="form-label">Nom</label>
+              <input class="form-input" id="edit-art-name" placeholder="Nom de l'article"></div>
+            <div class="form-group"><label class="form-label">Description</label>
+              <input class="form-input" id="edit-art-desc" placeholder="Description"></div>
+            <div class="form-group"><label class="form-label">Fournisseur</label>
+              <input class="form-input" id="edit-art-fournisseur" placeholder="Fournisseur"></div>
+            <div class="form-group"><label class="form-label">Prix unitaire</label>
+              <input class="form-input" id="edit-art-prix" placeholder="ex: 5000/m"></div>
+            <div class="form-group"><label class="form-label">Unité</label>
+              <input class="form-input" id="edit-art-unit" placeholder="ex: m, Unité, kg"></div>
+            <div class="form-group"><label class="form-label">Stock min.</label>
+              <input class="form-input" type="number" id="edit-art-min" placeholder="5"></div>
+            <div class="form-group"><label class="form-label">Stock max. (indicateur)</label>
+              <input class="form-input" type="number" id="edit-art-max" placeholder="100"></div>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <button class="btn-primary" onclick="adminSaveArticle()">
+              <i class="ti ti-device-floppy"></i> Enregistrer les modifications
+            </button>
+            <button class="btn-secondary" onclick="adminAddNewArticle()" style="background:var(--c-success);color:#fff;border:none;">
+              <i class="ti ti-plus"></i> Ajouter un nouvel article
+            </button>
+          </div>
+        </div>
+        <div class="form-card">
+          <h3 style="font-size:15px;font-weight:700;margin-bottom:12px;">Liste des articles</h3>
+          <div id="admin-articles-list" style="max-height:400px;overflow-y:auto;"></div>
+        </div>
+      </div>
+
+      <!-- Section : Historique actions -->
+      <div id="admin-section-logs" class="admin-section" style="display:none;">
+        <div class="form-card">
+          <h3 style="font-size:15px;font-weight:700;margin-bottom:16px;color:var(--c-text);">
+            <i class="ti ti-history" style="color:var(--c-accent);margin-right:6px;"></i>Historique de toutes les actions
+          </h3>
+          <div id="admin-logs-list" style="max-height:500px;overflow-y:auto;"></div>
+        </div>
+      </div>
+
+      <!-- Section : Export CSV -->
+      <div id="admin-section-export" class="admin-section" style="display:none;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div class="form-card" style="text-align:center;">
+            <i class="ti ti-list" style="font-size:36px;color:var(--c-accent);display:block;margin-bottom:12px;"></i>
+            <h3 style="font-size:15px;font-weight:700;margin-bottom:8px;">Activités</h3>
+            <p style="font-size:13px;color:var(--c-text3);margin-bottom:16px;">Exporter toutes les activités clients en CSV</p>
+            <button class="btn-primary" onclick="exportCSV('activities')">
+              <i class="ti ti-download"></i> Télécharger CSV
+            </button>
+          </div>
+          <div class="form-card" style="text-align:center;">
+            <i class="ti ti-package" style="font-size:36px;color:var(--c-accent);display:block;margin-bottom:12px;"></i>
+            <h3 style="font-size:15px;font-weight:700;margin-bottom:8px;">Stock</h3>
+            <p style="font-size:13px;color:var(--c-text3);margin-bottom:16px;">Exporter l'état actuel du stock en CSV</p>
+            <button class="btn-primary" onclick="exportCSV('stock')">
+              <i class="ti ti-download"></i> Télécharger CSV
+            </button>
+          </div>
+          <div class="form-card" style="text-align:center;">
+            <i class="ti ti-truck-delivery" style="font-size:36px;color:var(--c-accent);display:block;margin-bottom:12px;"></i>
+            <h3 style="font-size:15px;font-weight:700;margin-bottom:8px;">Ravitaillements</h3>
+            <p style="font-size:13px;color:var(--c-text3);margin-bottom:16px;">Exporter l'historique des ravitaillements</p>
+            <button class="btn-primary" onclick="exportCSV('ravitaillement')">
+              <i class="ti ti-download"></i> Télécharger CSV
+            </button>
+          </div>
+          <div class="form-card" style="text-align:center;">
+            <i class="ti ti-database-export" style="font-size:36px;color:var(--c-accent);display:block;margin-bottom:12px;"></i>
+            <h3 style="font-size:15px;font-weight:700;margin-bottom:8px;">Export complet</h3>
+            <p style="font-size:13px;color:var(--c-text3);margin-bottom:16px;">Tout exporter en un seul fichier ZIP</p>
+            <button class="btn-primary" onclick="exportCSV('all')">
+              <i class="ti ti-download"></i> Tout télécharger
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section : Modifier activités -->
+      <div id="admin-section-activities" class="admin-section" style="display:none;">
+        <div class="form-card">
+          <h3 style="font-size:15px;font-weight:700;margin-bottom:16px;color:var(--c-text);">
+            <i class="ti ti-edit" style="color:var(--c-accent);margin-right:6px;"></i>Modifier les activités de tous les utilisateurs
+          </h3>
+          <div id="admin-activities-list"></div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -775,6 +944,306 @@ function restoreSession() {
   return false;
 }
 
+
+/* ══════════════════════════════════════════════════════
+   ADMIN PANEL
+══════════════════════════════════════════════════════ */
+
+// Utilisateurs dynamiques (chargés depuis localStorage + USERS de base)
+var dynamicUsers = JSON.parse(localStorage.getItem('gestact_users') || 'null');
+if (!dynamicUsers) {
+  dynamicUsers = JSON.parse(JSON.stringify(USERS));
+  localStorage.setItem('gestact_users', JSON.stringify(dynamicUsers));
+}
+
+// Logs d'actions
+var actionLogs = JSON.parse(localStorage.getItem('gestact_logs') || '[]');
+
+function logAction(type, msg, icon, color) {
+  var entry = {
+    id: Date.now(),
+    type: type,
+    msg: msg,
+    icon: icon || 'ti-activity',
+    color: color || 'var(--c-accent)',
+    by: currentUser ? currentUser.name : '?',
+    date: new Date().toLocaleString('fr-FR')
+  };
+  actionLogs.unshift(entry);
+  if (actionLogs.length > 200) actionLogs = actionLogs.slice(0, 200);
+  localStorage.setItem('gestact_logs', JSON.stringify(actionLogs));
+}
+
+function showAdminSection(id, btn) {
+  document.querySelectorAll('.admin-section').forEach(function(s){ s.style.display='none'; });
+  document.querySelectorAll('.btn-admin-sub').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('admin-section-' + id).style.display = 'block';
+  btn.classList.add('active');
+  if (id === 'users')       renderAdminUsers();
+  if (id === 'articles')    renderAdminArticles();
+  if (id === 'logs')        renderAdminLogs();
+  if (id === 'activities')  renderAdminActivities();
+}
+
+// ── UTILISATEURS ──────────────────────────────────────
+
+function renderAdminUsers() {
+  var list = document.getElementById('admin-users-list');
+  if (!list) return;
+  var users = JSON.parse(localStorage.getItem('gestact_users') || '{}');
+  var html = '';
+  Object.keys(users).forEach(function(login) {
+    var u = users[login];
+    var isAdmin = login === 'admin';
+    html += '<div class="admin-user-row">' +
+      '<div class="user-info">' +
+        '<div class="user-avatar" style="width:36px;height:36px;font-size:13px;">' + u.initials + '</div>' +
+        '<div>' +
+          '<div style="font-weight:600;font-size:14px;">' + u.name + '</div>' +
+          '<div style="font-size:12px;color:var(--c-text3);">@' + login + (isAdmin ? ' · <span style="color:var(--c-accent);">Administrateur</span>' : '') + '</div>' +
+        '</div>' +
+      '</div>' +
+      (!isAdmin ? '<button class="btn-danger" onclick="adminDeleteUser('' + login + '')">' +
+        '<i class="ti ti-trash"></i> Supprimer</button>' : '<span style="font-size:12px;color:var(--c-text3);">Protégé</span>') +
+    '</div>';
+  });
+  list.innerHTML = html || '<p style="color:var(--c-text3);">Aucun utilisateur.</p>';
+}
+
+function adminAddUser() {
+  var login = document.getElementById('new-user-login').value.trim().toLowerCase();
+  var pass  = document.getElementById('new-user-pass').value;
+  var name  = document.getElementById('new-user-name').value.trim();
+  if (!login || !pass || !name) { toast('Remplissez tous les champs.', 'error'); return; }
+  var users = JSON.parse(localStorage.getItem('gestact_users') || '{}');
+  if (users[login]) { toast('Cet identifiant existe déjà.', 'error'); return; }
+  var initials = name.split(' ').map(function(w){ return w[0]; }).join('').substring(0,2).toUpperCase();
+  users[login] = { pass: pass, name: name, initials: initials };
+  localStorage.setItem('gestact_users', JSON.stringify(users));
+  document.getElementById('new-user-login').value = '';
+  document.getElementById('new-user-pass').value  = '';
+  document.getElementById('new-user-name').value  = '';
+  renderAdminUsers();
+  logAction('user', 'Utilisateur @' + login + ' (' + name + ') ajouté', 'ti-user-plus', 'var(--c-success)');
+  toast('Utilisateur "' + name + '" ajouté.', 'success');
+}
+
+function adminDeleteUser(login) {
+  if (!confirm('Supprimer l'utilisateur @' + login + ' ?')) return;
+  var users = JSON.parse(localStorage.getItem('gestact_users') || '{}');
+  var name = users[login] ? users[login].name : login;
+  delete users[login];
+  localStorage.setItem('gestact_users', JSON.stringify(users));
+  renderAdminUsers();
+  logAction('user', 'Utilisateur @' + login + ' (' + name + ') supprimé', 'ti-user-minus', 'var(--c-danger)');
+  toast('Utilisateur supprimé.', 'success');
+}
+
+// ── ARTICLES ──────────────────────────────────────────
+
+function adminLookupArticle(ref) {
+  var item = STOCK_ITEMS.find(function(i){ return i.ref.toUpperCase() === ref.toUpperCase(); });
+  if (!item) return;
+  document.getElementById('edit-art-name').value        = item.name        || '';
+  document.getElementById('edit-art-desc').value        = item.desc        || '';
+  document.getElementById('edit-art-fournisseur').value = item.fournisseur || '';
+  document.getElementById('edit-art-prix').value        = item.prix        || '';
+  document.getElementById('edit-art-unit').value        = item.unit        || '';
+  document.getElementById('edit-art-min').value         = item.min         || 0;
+  document.getElementById('edit-art-max').value         = item.max         || 0;
+}
+
+function adminSaveArticle() {
+  var ref = document.getElementById('edit-art-ref').value.trim().toUpperCase();
+  var item = STOCK_ITEMS.find(function(i){ return i.ref.toUpperCase() === ref; });
+  if (!item) { toast('Article "' + ref + '" non trouvé.', 'error'); return; }
+  item.name        = document.getElementById('edit-art-name').value.trim()        || item.name;
+  item.desc        = document.getElementById('edit-art-desc').value.trim()        || item.desc;
+  item.fournisseur = document.getElementById('edit-art-fournisseur').value.trim() || item.fournisseur;
+  item.prix        = document.getElementById('edit-art-prix').value.trim()        || item.prix;
+  item.unit        = document.getElementById('edit-art-unit').value.trim()        || item.unit;
+  item.min         = parseInt(document.getElementById('edit-art-min').value)      || item.min;
+  item.max         = parseInt(document.getElementById('edit-art-max').value)      || item.max;
+  renderAdminArticles();
+  renderStockTable();
+  logAction('article', 'Article ' + ref + ' modifié', 'ti-pencil', 'var(--c-warning)');
+  toast('Article "' + item.name + '" mis à jour.', 'success');
+}
+
+function adminAddNewArticle() {
+  var ref  = document.getElementById('edit-art-ref').value.trim().toUpperCase();
+  var name = document.getElementById('edit-art-name').value.trim();
+  if (!ref || !name) { toast('Référence et nom requis.', 'error'); return; }
+  if (STOCK_ITEMS.find(function(i){ return i.ref === ref; })) { toast('Cette référence existe déjà.', 'error'); return; }
+  var newId = Math.max.apply(null, STOCK_ITEMS.map(function(i){ return i.id; })) + 1;
+  var newItem = {
+    id: newId, ref: ref, name: name,
+    desc:        document.getElementById('edit-art-desc').value.trim()        || '',
+    fournisseur: document.getElementById('edit-art-fournisseur').value.trim() || '—',
+    prix:        document.getElementById('edit-art-prix').value.trim()        || '—',
+    unit:        document.getElementById('edit-art-unit').value.trim()        || 'Unité',
+    qty:         0,
+    min:         parseInt(document.getElementById('edit-art-min').value)      || 0,
+    max:         parseInt(document.getElementById('edit-art-max').value)      || 0
+  };
+  STOCK_ITEMS.push(newItem);
+  syncStockToSheets();
+  renderAdminArticles();
+  renderStockTable();
+  renderStockList();
+  logAction('article', 'Nouvel article ' + ref + ' (' + name + ') ajouté', 'ti-plus', 'var(--c-success)');
+  toast('Article "' + name + '" ajouté.', 'success');
+}
+
+function renderAdminArticles() {
+  var list = document.getElementById('admin-articles-list');
+  if (!list) return;
+  list.innerHTML = STOCK_ITEMS.map(function(item) {
+    return '<div class="admin-art-row" onclick="adminSelectArticle('' + item.ref + '')">' +
+      '<div style="display:flex;align-items:center;gap:12px;">' +
+        '<span style="font-family:monospace;font-size:12px;font-weight:700;color:var(--c-accent);background:var(--c-surface2);padding:3px 8px;border-radius:5px;">' + item.ref + '</span>' +
+        '<div><div style="font-weight:500;font-size:13px;">' + item.name + '</div>' +
+        '<div style="font-size:11px;color:var(--c-text3);">' + item.fournisseur + '</div></div>' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:16px;">' +
+        '<span style="font-size:13px;font-weight:600;color:var(--c-text2);">Qté: ' + item.qty + ' ' + item.unit + '</span>' +
+        '<span style="font-size:12px;color:var(--c-text3);">' + item.prix + '</span>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function adminSelectArticle(ref) {
+  document.getElementById('edit-art-ref').value = ref;
+  adminLookupArticle(ref);
+  document.getElementById('edit-art-ref').scrollIntoView({behavior:'smooth'});
+}
+
+// ── LOGS ──────────────────────────────────────────────
+
+function renderAdminLogs() {
+  var list = document.getElementById('admin-logs-list');
+  if (!list) return;
+  // Fusionner logs locaux + historique rav
+  var allLogs = actionLogs.slice();
+  ravHistory.forEach(function(r) {
+    allLogs.push({
+      id: r.id,
+      type: 'rav',
+      msg: 'Ravitaillement +' + r.qty + ' ' + r.ref + ' (' + r.name + ')',
+      icon: 'ti-truck-delivery',
+      color: 'var(--c-success)',
+      by: r.by,
+      date: r.date
+    });
+  });
+  // Trier par date décroissante
+  allLogs.sort(function(a, b){ return b.id - a.id; });
+  if (!allLogs.length) {
+    list.innerHTML = '<p style="color:var(--c-text3);text-align:center;padding:20px;">Aucune action enregistrée.</p>';
+    return;
+  }
+  list.innerHTML = allLogs.map(function(log) {
+    return '<div class="admin-log-row">' +
+      '<div class="log-icon" style="background:' + log.color + '22;color:' + log.color + ';">' +
+        '<i class="ti ' + log.icon + '"></i>' +
+      '</div>' +
+      '<div style="flex:1;">' +
+        '<div style="font-size:13px;font-weight:500;color:var(--c-text);">' + log.msg + '</div>' +
+        '<div style="font-size:11px;color:var(--c-text3);margin-top:2px;">' +
+          '<i class="ti ti-user" style="font-size:10px;"></i> ' + log.by +
+          ' &nbsp;·&nbsp; <i class="ti ti-clock" style="font-size:10px;"></i> ' + log.date +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+// ── EXPORT CSV ────────────────────────────────────────
+
+function exportCSV(type) {
+  var csv = '', filename = '';
+  if (type === 'activities' || type === 'all') {
+    var rows = [['ID','Client','Téléphone','Date enreg.','Date liv.','Description','Stock','Statut','Créé par','Prix','Montant payé','Reste']];
+    activities.forEach(function(a) {
+      var stock = Array.isArray(a.stock) ? a.stock.map(function(s){ return 'ID:'+s.id+'x'+s.qty; }).join(' | ') : (a.stock || '');
+      rows.push([a.id, a.client, a.phone, a.dateReg, a.dateLiv, a.notes, stock, a.status, a.createdBy, a.prix, a.montantPaye, Math.max(0,(a.prix||0)-(a.montantPaye||0))]);
+    });
+    var actCSV = rows.map(function(r){ return r.map(function(c){ return '"'+(c+'').replace(/"/g,'""')+'"'; }).join(','); }).join('
+');
+    if (type === 'activities') { csv = actCSV; filename = 'activites.csv'; }
+    else csv += 'ACTIVITÉS
+' + actCSV + '
+
+';
+  }
+  if (type === 'stock' || type === 'all') {
+    var rows = [['ID','Référence','Nom','Description','Fournisseur','Prix','Unité','Qté','Min','Max']];
+    STOCK_ITEMS.forEach(function(i){ rows.push([i.id,i.ref,i.name,i.desc,i.fournisseur,i.prix,i.unit,i.qty,i.min,i.max]); });
+    var stCSV = rows.map(function(r){ return r.map(function(c){ return '"'+(c+'').replace(/"/g,'""')+'"'; }).join(','); }).join('
+');
+    if (type === 'stock') { csv = stCSV; filename = 'stock.csv'; }
+    else csv += 'STOCK
+' + stCSV + '
+
+';
+  }
+  if (type === 'ravitaillement' || type === 'all') {
+    var rows = [['ID','Référence','Article','Quantité ajoutée','Date','Par']];
+    ravHistory.forEach(function(r){ rows.push([r.id,r.ref,r.name,r.qty,r.date,r.by]); });
+    var ravCSV = rows.map(function(r){ return r.map(function(c){ return '"'+(c+'').replace(/"/g,'""')+'"'; }).join(','); }).join('
+');
+    if (type === 'ravitaillement') { csv = ravCSV; filename = 'ravitaillement.csv'; }
+    else csv += 'RAVITAILLEMENTS
+' + ravCSV;
+  }
+  if (type === 'all') filename = 'gestact_export_complet.csv';
+  var blob = new Blob(['﻿' + csv], {type:'text/csv;charset=utf-8;'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+  logAction('export', 'Export CSV "' + filename + '" téléchargé', 'ti-download', 'var(--c-accent)');
+  toast('Export "' + filename + '" téléchargé.', 'success');
+}
+
+// ── MODIFIER ACTIVITÉS (admin) ────────────────────────
+
+function renderAdminActivities() {
+  var list = document.getElementById('admin-activities-list');
+  if (!list) return;
+  if (!activities.length) {
+    list.innerHTML = '<p style="color:var(--c-text3);text-align:center;padding:20px;">Aucune activité.</p>';
+    return;
+  }
+  list.innerHTML = activities.map(function(a) {
+    var reste = Math.max(0, (a.prix||0) - (a.montantPaye||0));
+    var statusLabel = a.status === 'done' ? '✅ Livré' : a.status === 'paid' ? '💰 Payé' : '⏳ En attente';
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-radius:8px;background:var(--c-surface2);margin-bottom:8px;">' +
+      '<div>' +
+        '<div style="font-weight:600;font-size:14px;">' + a.client + '</div>' +
+        '<div style="font-size:12px;color:var(--c-text3);">' + statusLabel + ' · Créé par ' + a.createdBy + ' · ' + fmtDate(a.dateReg) + '</div>' +
+        '<div style="font-size:12px;color:var(--c-text2);margin-top:2px;">Prix: ' + (a.prix||0).toLocaleString('fr-FR') + ' Ar · Payé: ' + (a.montantPaye||0).toLocaleString('fr-FR') + ' Ar · Reste: <strong style="color:' + (reste>0?'var(--c-warning)':'var(--c-success)') + ';">' + reste.toLocaleString('fr-FR') + ' Ar</strong></div>' +
+      '</div>' +
+      '<div style="display:flex;gap:8px;">' +
+        '<button class="btn-secondary" style="font-size:12px;padding:6px 12px;" onclick="showDetail(' + a.id + ')">' +
+          '<i class="ti ti-eye"></i> Voir</button>' +
+        '<button class="btn-danger" onclick="adminDeleteActivity(' + a.id + ')">' +
+          '<i class="ti ti-trash"></i> Supprimer</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function adminDeleteActivity(id) {
+  var a = activities.find(function(x){ return x.id===id; });
+  if (!a) return;
+  if (!confirm('Supprimer l'activité de "' + a.client + '" ?')) return;
+  logAction('activity', 'Activité de "' + a.client + '" supprimée par admin', 'ti-trash', 'var(--c-danger)');
+  deleteActivity(id);
+  setTimeout(function(){ renderAdminActivities(); }, 1000);
+}
+
 function doLogin() {
   const u = document.getElementById('login-user').value.trim();
   const p = document.getElementById('login-pass').value;
@@ -788,6 +1257,9 @@ function doLogin() {
     document.getElementById('app').style.display = 'block';
     document.getElementById('user-name').textContent = currentUser.name;
     document.getElementById('user-avatar').textContent = currentUser.initials;
+    // Afficher le tab admin seulement pour admin
+    var adminBtn = document.getElementById('btn-tab-admin');
+    if (adminBtn) adminBtn.style.display = (u === 'admin') ? 'inline-flex' : 'none';
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('f-date-reg').value = today;
     renderStockList();
@@ -842,6 +1314,10 @@ function switchTab(id, btn) {
   if (id === 'activites') renderActivities();
   if (id === 'stock') renderStockTable();
   if (id === 'ravitaillement') renderRavHistory();
+  if (id === 'admin') {
+    renderAdminUsers();
+    renderAdminArticles();
+  }
 }
 
 /* ── STOCK LIST (sélecteur dans onglet 1) ── */
@@ -1006,6 +1482,7 @@ function saveActivity() {
   });
   saveActivityToSheets(activities[0], true); // isNew=true → appendRow
   localStorage.setItem('gestact_activities', JSON.stringify(activities));
+  logAction('activity', 'Activité enregistrée pour "' + client + '"', 'ti-plus-circle', 'var(--c-accent)');
   toast('Activité enregistrée avec succès !', 'success');
   resetForm();
   updateBadge();
@@ -1117,6 +1594,7 @@ function doRavitaillement() {
   // Sauvegarder dans Sheets (partagé) au lieu du localStorage
   syncStockToSheets();
   saveRavEntryToSheets(entry);
+  logAction('rav', 'Ravitaillement +' + qty + ' ' + item.ref + ' (' + item.name + ')', 'ti-truck-delivery', 'var(--c-success)');
   toast('+' + qty + ' unité(s) ajoutée(s) à "' + item.name + '".', 'success');
   renderStockList();
   renderRavHistory();
