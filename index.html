@@ -2138,7 +2138,6 @@ function toast(msg, type) {
 
 /* ── LOGIQUE DE CONNEXION ET NAVIGATION ── */
 
-// Variable globale pour stocker l'utilisateur connecté
 let currentUser = null;
 
 function doLogin() {
@@ -2152,10 +2151,9 @@ function doLogin() {
   var username = userField.value.trim();
   var password = passField.value;
   
-  // Masquer l'erreur précédente
   errorDiv.style.display = 'none';
   
-  // Vérification des comptes définis dans ton HTML
+  // Vérification des comptes de test
   if (username === 'admin' && password === 'admin123') {
     currentUser = { name: 'Administrateur', role: 'admin', avatar: 'AD' };
   } else if (username === 'gestionnaire' && password === 'gest456') {
@@ -2166,11 +2164,11 @@ function doLogin() {
     return;
   }
   
-  // Si succès : Mise à jour du profil utilisateur
+  // Mise à jour de l'interface utilisateur
   document.getElementById('user-name').innerText = currentUser.name;
   document.getElementById('user-avatar').innerText = currentUser.avatar;
   
-  // Gestion de l'affichage de l'onglet Administration selon le rôle
+  // Affichage conditionnel de l'onglet Admin
   var adminTabBtn = document.getElementById('btn-tab-admin');
   if (currentUser.role === 'admin') {
     if (adminTabBtn) adminTabBtn.style.display = 'flex';
@@ -2178,7 +2176,7 @@ function doLogin() {
     if (adminTabBtn) adminTabBtn.style.display = 'none';
   }
   
-  // Basculer l'affichage des écrans
+  // Basculer l'affichage du Login vers l'Application
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   
@@ -2211,18 +2209,13 @@ function initApp() {
   console.log("Application connectée avec succès pour " + currentUser.name);
 }
 
-// Connexion automatique avec la touche Entrée
+// Connexion avec la touche Entrée
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') {
     doLogin();
   }
 });
 
-// Restaurer la session au chargement (sécurité si la fonction est appelée)
-function restoreSession() {
-  console.log("Session prête.");
-}
-restoreSession();
-
-</script> </body>
+</script>
+</body>
 </html>
