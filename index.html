@@ -2128,19 +2128,7 @@ document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeModa
 function toast(msg, type) {
   type = type || 'success';
   var t = document.getElementById('toast');
-  document.getElementById('toast-msg').textContent = msg;
-  t.className = 'toast ' + type;
-  document.getElementById('toast-icon').className = 'ti ' + (type==='success' ? 'ti-check' : 'ti-alert-circle') + ' toast-icon';
-  t.classList.add('show');
-  setTimeout(function(){ t.classList.remove('show'); }, 3200);
-}
-// Restaurer la session au chargement de la page
-restoreSession();
-
-/* ── TOAST ── */
-function toast(msg, type) {
-  type = type || 'success';
-  var t = document.getElementById('toast');
+  if (!t) return;
   document.getElementById('toast-msg').textContent = msg;
   t.className = 'toast ' + type;
   document.getElementById('toast-icon').className = 'ti ' + (type==='success' ? 'ti-check' : 'ti-alert-circle') + ' toast-icon';
@@ -2148,8 +2136,9 @@ function toast(msg, type) {
   setTimeout(function(){ t.classList.remove('show'); }, 3200);
 }
 
-/* ── COLLER LE CODE CI-DESSOUS ICI (LOGIQUE DE LOGIN) ── */
+/* ── LOGIQUE DE CONNEXION ET NAVIGATION ── */
 
+// Variable globale pour stocker l'utilisateur connecté
 let currentUser = null;
 
 function doLogin() {
@@ -2163,8 +2152,10 @@ function doLogin() {
   var username = userField.value.trim();
   var password = passField.value;
   
+  // Masquer l'erreur précédente
   errorDiv.style.display = 'none';
   
+  // Vérification des comptes définis dans ton HTML
   if (username === 'admin' && password === 'admin123') {
     currentUser = { name: 'Administrateur', role: 'admin', avatar: 'AD' };
   } else if (username === 'gestionnaire' && password === 'gest456') {
@@ -2175,9 +2166,11 @@ function doLogin() {
     return;
   }
   
+  // Si succès : Mise à jour du profil utilisateur
   document.getElementById('user-name').innerText = currentUser.name;
   document.getElementById('user-avatar').innerText = currentUser.avatar;
   
+  // Gestion de l'affichage de l'onglet Administration selon le rôle
   var adminTabBtn = document.getElementById('btn-tab-admin');
   if (currentUser.role === 'admin') {
     if (adminTabBtn) adminTabBtn.style.display = 'flex';
@@ -2185,6 +2178,7 @@ function doLogin() {
     if (adminTabBtn) adminTabBtn.style.display = 'none';
   }
   
+  // Basculer l'affichage des écrans
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   
@@ -2217,15 +2211,18 @@ function initApp() {
   console.log("Application connectée avec succès pour " + currentUser.name);
 }
 
+// Connexion automatique avec la touche Entrée
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') {
     doLogin();
   }
 });
 
-// Restaurer la session au chargement de la page
+// Restaurer la session au chargement (sécurité si la fonction est appelée)
+function restoreSession() {
+  console.log("Session prête.");
+}
 restoreSession();
 
 </script> </body>
 </html>
-</script>
