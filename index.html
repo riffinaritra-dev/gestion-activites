@@ -848,7 +848,8 @@ function switchTab(id, btn) {
 function renderStockList() {
   const q = (document.getElementById('stock-filter') ? document.getElementById('stock-filter').value : '').toLowerCase();
   const ul = document.getElementById('stock-list');
-  if (!ul) return;
+  if (!ul) { console.log('⚠️ renderStockList: #stock-list absent du DOM'); return; }
+  console.log('🔄 renderStockList appelé, id:2 qty=' + (STOCK_ITEMS.find(function(i){return i.id===2;}) || {}).qty);
   ul.innerHTML = '';
   STOCK_ITEMS.filter(function(i){ return i.name.toLowerCase().includes(q) || i.ref.toLowerCase().includes(q); })
     .forEach(function(item) {
