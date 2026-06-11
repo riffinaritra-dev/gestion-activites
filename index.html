@@ -1036,7 +1036,7 @@ function adminAddUser() {
 }
 
 function adminDeleteUser(login) {
-  if (!confirm('Supprimer l'utilisateur @' + login + ' ?')) return;
+  if (!confirm('Supprimer l\'utilisateur @' + login + ' ?')) return;
   var users = JSON.parse(localStorage.getItem('gestact_users') || '{}');
   var name = users[login] ? users[login].name : login;
   delete users[login];
@@ -1063,7 +1063,7 @@ function adminLookupArticle(ref) {
 function adminSaveArticle() {
   var ref = document.getElementById('edit-art-ref').value.trim().toUpperCase();
   var item = STOCK_ITEMS.find(function(i){ return i.ref.toUpperCase() === ref; });
-  if (!item) { toast('Article "' + ref + '" non trouvé.', 'error'); return; }
+  if (!item) { toast('Article "' + ref + '" non trouv\u00e9.', 'error'); return; }
   item.name        = document.getElementById('edit-art-name').value.trim()        || item.name;
   item.desc        = document.getElementById('edit-art-desc').value.trim()        || item.desc;
   item.fournisseur = document.getElementById('edit-art-fournisseur').value.trim() || item.fournisseur;
@@ -1081,7 +1081,7 @@ function adminAddNewArticle() {
   var ref  = document.getElementById('edit-art-ref').value.trim().toUpperCase();
   var name = document.getElementById('edit-art-name').value.trim();
   if (!ref || !name) { toast('Référence et nom requis.', 'error'); return; }
-  if (STOCK_ITEMS.find(function(i){ return i.ref === ref; })) { toast('Cette référence existe déjà.', 'error'); return; }
+  if (STOCK_ITEMS.find(function(i){ return i.ref === ref; })) { toast('Cette r\u00e9f\u00e9rence existe d\u00e9j\u00e0.', 'error'); return; }
   var newId = Math.max.apply(null, STOCK_ITEMS.map(function(i){ return i.id; })) + 1;
   var newItem = {
     id: newId, ref: ref, name: name,
@@ -1245,7 +1245,7 @@ function renderAdminActivities() {
 function adminDeleteActivity(id) {
   var a = activities.find(function(x){ return x.id===id; });
   if (!a) return;
-  if (!confirm('Supprimer l'activité de "' + a.client + '" ?')) return;
+  if (!confirm('Supprimer l\'activit\u00e9 de "' + a.client + '" ?')) return;
   logAction('activity', 'Activité de "' + a.client + '" supprimée par admin', 'ti-trash', 'var(--c-danger)');
   deleteActivity(id);
   setTimeout(function(){ renderAdminActivities(); }, 1000);
@@ -2137,4 +2137,95 @@ function toast(msg, type) {
 // Restaurer la session au chargement de la page
 restoreSession();
 
+/* ── TOAST ── */
+function toast(msg, type) {
+  type = type || 'success';
+  var t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.className = 'toast ' + type;
+  document.getElementById('toast-icon').className = 'ti ' + (type==='success' ? 'ti-check' : 'ti-alert-circle') + ' toast-icon';
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 3200);
+}
+
+/* ── COLLER LE CODE CI-DESSOUS ICI (LOGIQUE DE LOGIN) ── */
+
+let currentUser = null;
+
+function doLogin() {
+  var userField = document.getElementById('login-user');
+  var passField = document.getElementById('login-pass');
+  var errorDiv = document.getElementById('login-error');
+  var errorMsg = document.getElementById('login-error-msg');
+  
+  if (!userField || !passField) return;
+  
+  var username = userField.value.trim();
+  var password = passField.value;
+  
+  errorDiv.style.display = 'none';
+  
+  if (username === 'admin' && password === 'admin123') {
+    currentUser = { name: 'Administrateur', role: 'admin', avatar: 'AD' };
+  } else if (username === 'gestionnaire' && password === 'gest456') {
+    currentUser = { name: 'Gestionnaire', role: 'gestionnaire', avatar: 'GE' };
+  } else {
+    errorMsg.innerText = "Identifiants incorrects.";
+    errorDiv.style.display = 'flex';
+    return;
+  }
+  
+  document.getElementById('user-name').innerText = currentUser.name;
+  document.getElementById('user-avatar').innerText = currentUser.avatar;
+  
+  var adminTabBtn = document.getElementById('btn-tab-admin');
+  if (currentUser.role === 'admin') {
+    if (adminTabBtn) adminTabBtn.style.display = 'flex';
+  } else {
+    if (adminTabBtn) adminTabBtn.style.display = 'none';
+  }
+  
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  
+  initApp();
+}
+
+function doLogout() {
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pass').value = '';
+  document.getElementById('login-error').style.display = 'none';
+  
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  currentUser = null;
+}
+
+function switchTab(tabId, element) {
+  var tabs = document.querySelectorAll('.tab-btn');
+  var contents = document.querySelectorAll('.tab-content');
+  
+  tabs.forEach(t => t.classList.remove('active'));
+  contents.forEach(c => c.classList.remove('active'));
+  
+  element.classList.add('active');
+  var targetContent = document.getElementById('tab-' + tabId);
+  if (targetContent) targetContent.classList.add('active');
+}
+
+function initApp() {
+  console.log("Application connectée avec succès pour " + currentUser.name);
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') {
+    doLogin();
+  }
+});
+
+// Restaurer la session au chargement de la page
+restoreSession();
+
+</script> </body>
+</html>
 </script>
