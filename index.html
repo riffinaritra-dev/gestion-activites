@@ -590,59 +590,59 @@ const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwTqHSTlbkCvh
 
 const STOCK_ITEMS = [
   { id:1,  ref:'ATCL-1',  name:'Autocollant plastique',    desc:'Avec motif largeur 0.5m',              prix:'5000/m',        fournisseur:'TSARAHALANA',                         unit:'m',       qty:0,    min:5,   max:5   },
-  { id:2,  ref:'CDR-1',   name:'Cadre sérigraphique',      desc:'Cadre en bois assemblé',               prix:'—',             fournisseur:'HERINIAIANA',                          unit:'Unité',   qty:0,    min:4,   max:10  },
-  { id:3,  ref:'RSN-1',   name:'Catalyseur pour résine',   desc:'Durcissant à résine',                  prix:'25500/500ml',   fournisseur:'SPCI',                                unit:'mL',      qty:0,  min:100, max:1000},
-  { id:4,  ref:'EMUL-1',  name:'Émulsion diazo',           desc:'Durée 3 mois',                         prix:'34800',         fournisseur:'SPCI',                                unit:'kg',      qty:0,  min:0.5, max:1   },
-  { id:5,  ref:'ENC-1',   name:'Encre mipo (6 couleurs)',  desc:'',                                     prix:'5000',          fournisseur:'ACCH SUPRÈME CENTER BOX 114',         unit:'mL',      qty:0,min:20,  max:2   },
-  { id:6,  ref:'ENC-2',   name:'Encre plastisol blanc',    desc:'Ichoflex white pf',                    prix:'74400/5kg',     fournisseur:'SPCI',                                unit:'g',       qty:0, min:200, max:2000},
-  { id:7,  ref:'ENC-3',   name:'Encre plastisol bleu',     desc:'',                                     prix:'5000/250g',     fournisseur:'RJA PRODUIT SÉRIGRAPHIE',             unit:'g',       qty:0,  min:250, max:1000},
-  { id:8,  ref:'ENC-4',   name:'Encre plastisol jaune',    desc:'',                                     prix:'15000/250g',    fournisseur:'RJA PRODUIT SÉRIGRAPHIE',             unit:'g',       qty:0, min:250, max:1000},
-  { id:9,  ref:'ENC-5',   name:'Encre plastisol noir',     desc:'Ichoflex black',                       prix:'38000/kg',      fournisseur:'SPCI',                                unit:'g',       qty:0, min:200, max:2000},
-  { id:10, ref:'ENC-6',   name:'Encre plastisol rouge',    desc:'',                                     prix:'15000/250g',    fournisseur:'RJA PRODUIT SÉRIGRAPHIE',             unit:'g',       qty:0,  min:250, max:1000},
-  { id:11, ref:'ENC-7',   name:'Encre plastisol vert',     desc:'',                                     prix:'15000/250g',    fournisseur:'RJA PRODUIT SÉRIGRAPHIE',             unit:'g',       qty:0,  min:250, max:1000},
-  { id:12, ref:'PLST-1',  name:'Film plastification',      desc:'',                                     prix:'21000',         fournisseur:'ACCH SUPRÈME CENTER BOX 112',         unit:'Unité',   qty:0,   min:20,  max:100 },
-  { id:13, ref:'FLX-1',   name:'Flex blanc',               desc:'L=60cm',                               prix:'20000',         fournisseur:'BAOVOLA ANALAKELY',                   unit:'m²',      qty:0,    min:0.3, max:5   },
-  { id:14, ref:'FLX-2',   name:'Flex doré',                desc:'L=60cm',                               prix:'20000',         fournisseur:'BAOVOLA ANALAKELY',                   unit:'m²',      qty:0,    min:0.3, max:5   },
-  { id:15, ref:'FLX-3',   name:'Flex noir',                desc:'Largeur 0.5m',                         prix:'20000/m',       fournisseur:'GRAPH BAOVOLA ANALAKELY',             unit:'m',       qty:0,    min:2,   max:5   },
-  { id:16, ref:'PAPS-1',  name:'Papier 10x15',             desc:'30 pièces',                             prix:'1800',          fournisseur:'ACCH SUPRÈME CENTER BOX 111',         unit:'Paquet',  qty:0,   min:10,  max:200 },
-  { id:17, ref:'PAPS-2',  name:'Papier A3',                desc:'280 g',                                 prix:'24000',         fournisseur:'ACCH SUPRÈME CENTER BOX 110',         unit:'Unité',   qty:0,   min:10,  max:50  },
-  { id:18, ref:'PAPS-3',  name:'Papier A4',                desc:'300g',                                  prix:'6000',          fournisseur:'ACCH SUPRÈME CENTER BOX 111',         unit:'Unité',   qty:0,   min:20,  max:50  },
-  { id:19, ref:'PAPS-4',  name:'Papier autocollant A4',    desc:'100 pièces',                            prix:'37000',         fournisseur:'ACCH SUPRÈME CENTER BOX 113',         unit:'Paquet',  qty:0,    min:30,  max:100 },
-  { id:20, ref:'PAPS-5',  name:'Papier dark',              desc:'',                                     prix:'2300',          fournisseur:'BEHORIRIKA BOX 102',                  unit:'Unité',   qty:0,   min:5,   max:30  },
-  { id:21, ref:'PAPS-6',  name:'Papier ican double face',  desc:'50 pièces',                             prix:'10500',         fournisseur:'ACCH SUPRÈME CENTER BOX 111',         unit:'Paquet',  qty:0,   min:10,  max:50  },
-  { id:22, ref:'PAPS-7',  name:'Papier profilm',           desc:'',                                     prix:'370',           fournisseur:'PAVILLON ANALAKELY',                  unit:'Unité',   qty:0,   min:20,  max:100 },
-  { id:23, ref:'PAPS-8',  name:'Papier sublimation',       desc:'',                                     prix:'500',           fournisseur:'—',                                   unit:'Unité',   qty:0,   min:5,   max:30  },
+  { id:2,  ref:'CDR-1',   name:'Cadre sérigraphique',      desc:'Cadre en bois assemblé',               prix:'—',             fournisseur:'HERINIAIANA',                          unit:'Unité',   qty:9,    min:4,   max:10  },
+  { id:3,  ref:'RSN-1',   name:'Catalyseur pour résine',   desc:'Durcissant à résine',                  prix:'25500/500ml',   fournisseur:'SPCI',                                unit:'mL',      qty:574,  min:100, max:1000},
+  { id:4,  ref:'EMUL-1',  name:'Émulsion diazo',           desc:'Durée 3 mois',                         prix:'34800',         fournisseur:'SPCI',                                unit:'kg',      qty:845,  min:0.5, max:1   },
+  { id:5,  ref:'ENC-1',   name:'Encre mipo (6 couleurs)',  desc:'',                                     prix:'5000',          fournisseur:'ACCH SUPRÈME CENTER BOX 114',         unit:'mL',      qty:16203,min:20,  max:2   },
+  { id:6,  ref:'ENC-2',   name:'Encre plastisol blanc',    desc:'Ichoflex white pf',                    prix:'74400/5kg',     fournisseur:'SPCI',                                unit:'g',       qty:1087, min:200, max:2000},
+  { id:7,  ref:'ENC-3',   name:'Encre plastisol bleu',     desc:'',                                     prix:'5000/250g',     fournisseur:'RJA PRODUIT SÉRIGRAPHIE',             unit:'g',       qty:734,  min:250, max:1000},
+  { id:8,  ref:'ENC-4',   name:'Encre plastisol jaune',    desc:'',                                     prix:'15000/250g',    fournisseur:'RJA PRODUIT SÉRIGRAPHIE',             unit:'g',       qty:2205, min:250, max:1000},
+  { id:9,  ref:'ENC-5',   name:'Encre plastisol noir',     desc:'Ichoflex black',                       prix:'38000/kg',      fournisseur:'SPCI',                                unit:'g',       qty:5314, min:200, max:2000},
+  { id:10, ref:'ENC-6',   name:'Encre plastisol rouge',    desc:'',                                     prix:'15000/250g',    fournisseur:'RJA PRODUIT SÉRIGRAPHIE',             unit:'g',       qty:262,  min:250, max:1000},
+  { id:11, ref:'ENC-7',   name:'Encre plastisol vert',     desc:'',                                     prix:'15000/250g',    fournisseur:'RJA PRODUIT SÉRIGRAPHIE',             unit:'g',       qty:250,  min:250, max:1000},
+  { id:12, ref:'PLST-1',  name:'Film plastification',      desc:'',                                     prix:'21000',         fournisseur:'ACCH SUPRÈME CENTER BOX 112',         unit:'Unité',   qty:95,   min:20,  max:100 },
+  { id:13, ref:'FLX-1',   name:'Flex blanc',               desc:'L=60cm',                               prix:'20000',         fournisseur:'BAOVOLA ANALAKELY',                   unit:'m²',      qty:1,    min:0.3, max:5   },
+  { id:14, ref:'FLX-2',   name:'Flex doré',                desc:'L=60cm',                               prix:'20000',         fournisseur:'BAOVOLA ANALAKELY',                   unit:'m²',      qty:1,    min:0.3, max:5   },
+  { id:15, ref:'FLX-3',   name:'Flex noir',                desc:'Largeur 0.5m',                         prix:'20000/m',       fournisseur:'GRAPH BAOVOLA ANALAKELY',             unit:'m',       qty:2,    min:2,   max:5   },
+  { id:16, ref:'PAPS-1',  name:'Papier 10x15',             desc:'30 pièces',                             prix:'1800',          fournisseur:'ACCH SUPRÈME CENTER BOX 111',         unit:'Paquet',  qty:38,   min:10,  max:200 },
+  { id:17, ref:'PAPS-2',  name:'Papier A3',                desc:'280 g',                                 prix:'24000',         fournisseur:'ACCH SUPRÈME CENTER BOX 110',         unit:'Unité',   qty:47,   min:10,  max:50  },
+  { id:18, ref:'PAPS-3',  name:'Papier A4',                desc:'300g',                                  prix:'6000',          fournisseur:'ACCH SUPRÈME CENTER BOX 111',         unit:'Unité',   qty:51,   min:20,  max:50  },
+  { id:19, ref:'PAPS-4',  name:'Papier autocollant A4',    desc:'100 pièces',                            prix:'37000',         fournisseur:'ACCH SUPRÈME CENTER BOX 113',         unit:'Paquet',  qty:8,    min:30,  max:100 },
+  { id:20, ref:'PAPS-5',  name:'Papier dark',              desc:'',                                     prix:'2300',          fournisseur:'BEHORIRIKA BOX 102',                  unit:'Unité',   qty:74,   min:5,   max:30  },
+  { id:21, ref:'PAPS-6',  name:'Papier ican double face',  desc:'50 pièces',                             prix:'10500',         fournisseur:'ACCH SUPRÈME CENTER BOX 111',         unit:'Paquet',  qty:75,   min:10,  max:50  },
+  { id:22, ref:'PAPS-7',  name:'Papier profilm',           desc:'',                                     prix:'370',           fournisseur:'PAVILLON ANALAKELY',                  unit:'Unité',   qty:91,   min:20,  max:100 },
+  { id:23, ref:'PAPS-8',  name:'Papier sublimation',       desc:'',                                     prix:'500',           fournisseur:'—',                                   unit:'Unité',   qty:10,   min:5,   max:30  },
   { id:24, ref:'POL-1',   name:'Polo adulte vierge',       desc:'',                                     prix:'9000',          fournisseur:'—',                                   unit:'Unité',   qty:0,    min:5,   max:50  },
-  { id:25, ref:'POL-2',   name:'Polo enfant vierge',       desc:'180g',                                  prix:'7000',          fournisseur:'PUB YAKI PRO',                        unit:'Unité',   qty:0,    min:5,   max:50  },
-  { id:26, ref:'RSN-2',   name:'Résine',                   desc:'',                                     prix:'19500',         fournisseur:'SPCI',                                unit:'mL',      qty:0,  min:200, max:1000},
+  { id:25, ref:'POL-2',   name:'Polo enfant vierge',       desc:'180g',                                  prix:'7000',          fournisseur:'PUB YAKI PRO',                        unit:'Unité',   qty:5,    min:5,   max:50  },
+  { id:26, ref:'RSN-2',   name:'Résine',                   desc:'',                                     prix:'19500',         fournisseur:'SPCI',                                unit:'mL',      qty:800,  min:200, max:1000},
   { id:27, ref:'SACH-1',  name:'Sachet 10x15',             desc:'50 pièces',                             prix:'4000',          fournisseur:'ACCH SUPRÈME CENTER BOX 111',         unit:'Unité',   qty:0,    min:30,  max:200 },
-  { id:28, ref:'SACH-2',  name:'Sachet A4',                desc:'Paquet',                               prix:'10000',         fournisseur:'ACCH SUPRÈME CENTER BOX 110',         unit:'Unité',   qty:0,   min:30,  max:200 },
-  { id:29, ref:'SUD-1',   name:'Soude caustique',          desc:'En graine',                            prix:'7300',          fournisseur:'SPCI',                                unit:'g',       qty:0,  min:80,  max:1000},
+  { id:28, ref:'SACH-2',  name:'Sachet A4',                desc:'Paquet',                               prix:'10000',         fournisseur:'ACCH SUPRÈME CENTER BOX 110',         unit:'Unité',   qty:55,   min:30,  max:200 },
+  { id:29, ref:'SUD-1',   name:'Soude caustique',          desc:'En graine',                            prix:'7300',          fournisseur:'SPCI',                                unit:'g',       qty:200,  min:80,  max:1000},
   { id:30, ref:'TS-1',    name:'T-shirt 2-4 ans',          desc:'',                                     prix:'6000',          fournisseur:'GM BOUTIQUE',                         unit:'Unité',   qty:0,    min:2,   max:5   },
-  { id:31, ref:'TS-10',   name:'T-shirt 6-8 ans',          desc:'',                                     prix:'8000',          fournisseur:'GM BOUTIQUE',                         unit:'Unité',   qty:0,    min:2,   max:5   },
-  { id:32, ref:'TS-2',    name:'T-shirt 10-12 ans',        desc:'',                                     prix:'9000',          fournisseur:'GM BOUTIQUE',                         unit:'Unité',   qty:0,  min:2,   max:5   },
-  { id:33, ref:'TS-3',    name:'T-shirt 14-XS',            desc:'',                                     prix:'10000',         fournisseur:'GM BOUTIQUE',                         unit:'Unité',   qty:0,    min:2,   max:5   },
-  { id:34, ref:'TS-4',    name:'T-shirt adulte vierge',    desc:'',                                     prix:'7000',          fournisseur:'—',                                   unit:'Unité',   qty:0,    min:5,   max:50  },
+  { id:31, ref:'TS-10',   name:'T-shirt 6-8 ans',          desc:'',                                     prix:'8000',          fournisseur:'GM BOUTIQUE',                         unit:'Unité',   qty:1,    min:2,   max:5   },
+  { id:32, ref:'TS-2',    name:'T-shirt 10-12 ans',        desc:'',                                     prix:'9000',          fournisseur:'GM BOUTIQUE',                         unit:'Unité',   qty:715,  min:2,   max:5   },
+  { id:33, ref:'TS-3',    name:'T-shirt 14-XS',            desc:'',                                     prix:'10000',         fournisseur:'GM BOUTIQUE',                         unit:'Unité',   qty:7,    min:2,   max:5   },
+  { id:34, ref:'TS-4',    name:'T-shirt adulte vierge',    desc:'',                                     prix:'7000',          fournisseur:'—',                                   unit:'Unité',   qty:7,    min:5,   max:50  },
   { id:35, ref:'TS-5',    name:'T-shirt blanc 170g',       desc:'170g',                                  prix:'8000',          fournisseur:'FB: AINA TSIKY',                      unit:'Unité',   qty:0,    min:10,  max:50  },
-  { id:36, ref:'TS-6',    name:'T-shirt blanc 180g',       desc:'100% coton 180g',                      prix:'11000',         fournisseur:'MR LALASY PAVILLON ANALAKELY',        unit:'Unité',   qty:0,    min:10,  max:50  },
-  { id:37, ref:'TS-7',    name:'T-shirt couleur 170g',     desc:'170g',                                  prix:'8000',          fournisseur:'FB: AINA TSIKY',                      unit:'Unité',   qty:0,    min:10,  max:50  },
-  { id:38, ref:'TS-8',    name:'T-shirt couleur 180g',     desc:'100% coton 180g',                      prix:'12000',         fournisseur:'MR LALASY PAVILLON ANALAKELY',        unit:'Unité',   qty:0,    min:10,  max:50  },
-  { id:39, ref:'TS-9',    name:'T-shirt enfant vierge',    desc:'170g',                                  prix:'5000',          fournisseur:'—',                                   unit:'Unité',   qty:0,    min:5,   max:50  },
-  { id:40, ref:'TS-13',   name:'T-shirt L',                desc:'',                                     prix:'12000',         fournisseur:'GM BOUTIQUE',                         unit:'Unité',   qty:0,    min:2,   max:5   },
-  { id:41, ref:'TS-11',   name:'T-shirt M',                desc:'',                                     prix:'12000',         fournisseur:'GM BOUTIQUE',                         unit:'Unité',   qty:0,   min:2,   max:5   },
-  { id:42, ref:'TS-12',   name:'T-shirt S',                desc:'',                                     prix:'12000',         fournisseur:'GM BOUTIQUE',                         unit:'Unité',   qty:0,    min:2,   max:5   },
-  { id:43, ref:'TS-14',   name:'T-shirt XL',               desc:'',                                     prix:'13000',         fournisseur:'GM BOUTIQUE',                         unit:'Unité',   qty:0,    min:2,   max:5   },
-  { id:44, ref:'TS-15',   name:'T-shirt XXL',              desc:'',                                     prix:'13000',         fournisseur:'GM BOUTIQUE',                         unit:'Unité',   qty:0,    min:2,   max:5   },
-  { id:45, ref:'TPI-1',   name:'Tapis souris (cuir)',      desc:'Lafika ho an\'ilay souris',             prix:'1500',          fournisseur:'AMBODIFILAOKO',                       unit:'Unité',   qty:0,   min:10,  max:50  },
-  { id:46, ref:'TSU-1',   name:'Tissu pour tapis souris',  desc:'Tissu avec +60% polyester',            prix:'5000',          fournisseur:'ISOTRY',                              unit:'m',       qty:0,    min:1,   max:5   },
-  { id:47, ref:'TSU-2',   name:'Tissu satin brillant',     desc:'Blanc',                                prix:'5000',          fournisseur:'ISOTRY',                              unit:'m',       qty:0,    min:1,   max:20  },
+  { id:36, ref:'TS-6',    name:'T-shirt blanc 180g',       desc:'100% coton 180g',                      prix:'11000',         fournisseur:'MR LALASY PAVILLON ANALAKELY',        unit:'Unité',   qty:7,    min:10,  max:50  },
+  { id:37, ref:'TS-7',    name:'T-shirt couleur 170g',     desc:'170g',                                  prix:'8000',          fournisseur:'FB: AINA TSIKY',                      unit:'Unité',   qty:7,    min:10,  max:50  },
+  { id:38, ref:'TS-8',    name:'T-shirt couleur 180g',     desc:'100% coton 180g',                      prix:'12000',         fournisseur:'MR LALASY PAVILLON ANALAKELY',        unit:'Unité',   qty:1,    min:10,  max:50  },
+  { id:39, ref:'TS-9',    name:'T-shirt enfant vierge',    desc:'170g',                                  prix:'5000',          fournisseur:'—',                                   unit:'Unité',   qty:7,    min:5,   max:50  },
+  { id:40, ref:'TS-13',   name:'T-shirt L',                desc:'',                                     prix:'12000',         fournisseur:'GM BOUTIQUE',                         unit:'Unité',   qty:6,    min:2,   max:5   },
+  { id:41, ref:'TS-11',   name:'T-shirt M',                desc:'',                                     prix:'12000',         fournisseur:'GM BOUTIQUE',                         unit:'Unité',   qty:45,   min:2,   max:5   },
+  { id:42, ref:'TS-12',   name:'T-shirt S',                desc:'',                                     prix:'12000',         fournisseur:'GM BOUTIQUE',                         unit:'Unité',   qty:1,    min:2,   max:5   },
+  { id:43, ref:'TS-14',   name:'T-shirt XL',               desc:'',                                     prix:'13000',         fournisseur:'GM BOUTIQUE',                         unit:'Unité',   qty:3,    min:2,   max:5   },
+  { id:44, ref:'TS-15',   name:'T-shirt XXL',              desc:'',                                     prix:'13000',         fournisseur:'GM BOUTIQUE',                         unit:'Unité',   qty:2,    min:2,   max:5   },
+  { id:45, ref:'TPI-1',   name:'Tapis souris (cuir)',      desc:'Lafika ho an\'ilay souris',             prix:'1500',          fournisseur:'AMBODIFILAOKO',                       unit:'Unité',   qty:11,   min:10,  max:50  },
+  { id:46, ref:'TSU-1',   name:'Tissu pour tapis souris',  desc:'Tissu avec +60% polyester',            prix:'5000',          fournisseur:'ISOTRY',                              unit:'m',       qty:2,    min:1,   max:5   },
+  { id:47, ref:'TSU-2',   name:'Tissu satin brillant',     desc:'Blanc',                                prix:'5000',          fournisseur:'ISOTRY',                              unit:'m',       qty:1,    min:1,   max:20  },
   { id:48, ref:'TSU-3',   name:'Tissu tergal',             desc:'Ecusson',                              prix:'5000 à 6000',   fournisseur:'ISOTRY',                              unit:'m²',      qty:0,    min:2,   max:5   },
-  { id:49, ref:'TL-1',    name:'Toile icho mesh 47t',      desc:'Type: 47T',                            prix:'21800/m',       fournisseur:'SPCI AKORONDRANO',                    unit:'m',       qty:0,    min:1,   max:5   },
-  { id:50, ref:'TL-2',    name:'Toile icho mesh 77t',      desc:'Type: 77T',                            prix:'35000/m',       fournisseur:'RJA PRODUIT SÉRIGRAPHIE',             unit:'m',       qty:0,    min:1,   max:5   },
-  { id:51, ref:'TRSF-1',  name:'Transfert tape',           desc:'Vinyl transparent, flex dark L=50cm',  prix:'9000',          fournisseur:'EVA MULTISERVICE ANALAKELY',          unit:'m',       qty:0,    min:2,   max:5   },
-  { id:52, ref:'VNL-1',   name:'Vinyl noir',               desc:'',                                     prix:'22000',         fournisseur:'GRAPH BAOVOLA ANALAKELY',             unit:'m',       qty:0,    min:2,   max:5   },
-  { id:53, ref:'VNL-2',   name:'Vinyl résistant transparent', desc:'Pour renforcer les skin wrap',      prix:'18000/m²',      fournisseur:'EVA MULTISERVICE ANALAKELY',          unit:'m',       qty:0,    min:2,   max:5   },
-  { id:54, ref:'VNL-3',   name:'Vinyl imprimable',         desc:'Largeur 1m',                           prix:'17000/m',       fournisseur:'—',                                   unit:'m',       qty:0,    min:2,   max:5   },
+  { id:49, ref:'TL-1',    name:'Toile icho mesh 47t',      desc:'Type: 47T',                            prix:'21800/m',       fournisseur:'SPCI AKORONDRANO',                    unit:'m',       qty:2,    min:1,   max:5   },
+  { id:50, ref:'TL-2',    name:'Toile icho mesh 77t',      desc:'Type: 77T',                            prix:'35000/m',       fournisseur:'RJA PRODUIT SÉRIGRAPHIE',             unit:'m',       qty:5,    min:1,   max:5   },
+  { id:51, ref:'TRSF-1',  name:'Transfert tape',           desc:'Vinyl transparent, flex dark L=50cm',  prix:'9000',          fournisseur:'EVA MULTISERVICE ANALAKELY',          unit:'m',       qty:1,    min:2,   max:5   },
+  { id:52, ref:'VNL-1',   name:'Vinyl noir',               desc:'',                                     prix:'22000',         fournisseur:'GRAPH BAOVOLA ANALAKELY',             unit:'m',       qty:2,    min:2,   max:5   },
+  { id:53, ref:'VNL-2',   name:'Vinyl résistant transparent', desc:'Pour renforcer les skin wrap',      prix:'18000/m²',      fournisseur:'EVA MULTISERVICE ANALAKELY',          unit:'m',       qty:1,    min:2,   max:5   },
+  { id:54, ref:'VNL-3',   name:'Vinyl imprimable',         desc:'Largeur 1m',                           prix:'17000/m',       fournisseur:'—',                                   unit:'m',       qty:2,    min:2,   max:5   },
 ];
 
 let activities = JSON.parse(localStorage.getItem('gestact_activities') || '[]');
@@ -1170,20 +1170,10 @@ function loadStockFromSheets() {
         renderStockList();
         console.log('✅ Stock chargé depuis Sheets (' + data.length + ' articles)');
       } else if (Array.isArray(data) && data.length === 0) {
-        // Sheets vide → essayer de récupérer depuis localStorage en dernier recours
-        var saved = localStorage.getItem('gestact_stock_qtys');
-        if (saved) {
-          try {
-            var qtys = JSON.parse(saved);
-            qtys.forEach(function(s) {
-              var item = STOCK_ITEMS.find(function(i){ return i.id === s.id; });
-              if (item) item.qty = Number(s.qty) || 0;
-            });
-            renderStockList();
-            console.log('📦 Stock récupéré depuis localStorage, sync vers Sheets...');
-          } catch(e) {}
-        }
-        syncStockToSheets();
+        // Sheets vide → initialiser avec les valeurs par défaut du HTML
+        console.log('📤 Sheets Stock vide, initialisation avec valeurs par défaut...');
+        renderStockList();
+        syncStockToSheets(); // Envoie les qty actuelles vers Sheets (une seule fois)
       } else {
         console.warn('⚠️ getStock réponse inattendue:', JSON.stringify(data));
       }
