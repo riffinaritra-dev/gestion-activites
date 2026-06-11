@@ -2128,120 +2128,13 @@ document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeModa
 function toast(msg, type) {
   type = type || 'success';
   var t = document.getElementById('toast');
-  if (!t) return;
-  var msgEl = document.getElementById('toast-msg');
-  var iconEl = document.getElementById('toast-icon');
-  if (msgEl) msgEl.textContent = msg;
-  if (iconEl) iconEl.className = 'ti ' + (type==='success' ? 'ti-check' : 'ti-alert-circle') + ' toast-icon';
-  t.className = 'toast ' + type + ' show';
+  document.getElementById('toast-msg').textContent = msg;
+  t.className = 'toast ' + type;
+  document.getElementById('toast-icon').className = 'ti ' + (type==='success' ? 'ti-check' : 'ti-alert-circle') + ' toast-icon';
+  t.classList.add('show');
   setTimeout(function(){ t.classList.remove('show'); }, 3200);
 }
-
-/* ── LOGIQUE DE CONNEXION ET NAVIGATION ── */
-
-let currentUser = null;
-
-function doLogin() {
-  var userField = document.getElementById('login-user');
-  var passField = document.getElementById('login-pass');
-  var errorDiv = document.getElementById('login-error');
-  var errorMsg = document.getElementById('login-error-msg');
-  
-  if (!userField || !passField) return;
-  
-  var username = userField.value.trim();
-  var password = passField.value;
-  
-  if (errorDiv) errorDiv.style.display = 'none';
-  
-  // Vérification des identifiants (admin/admin123 ou gestionnaire/gest456)
-  if (username === 'admin' && password === 'admin123') {
-    currentUser = { name: 'Administrateur', role: 'admin', avatar: 'AD' };
-  } else if (username === 'gestionnaire' && password === 'gest456') {
-    currentUser = { name: 'Gestionnaire', role: 'gestionnaire', avatar: 'GE' };
-  } else {
-    if (errorMsg) errorMsg.innerText = "Identifiants incorrects.";
-    if (errorDiv) errorDiv.style.display = 'flex';
-    return;
-  }
-  
-  // Mise à jour de l'interface utilisateur connecté
-  var nameEl = document.getElementById('user-name');
-  var avatarEl = document.getElementById('user-avatar');
-  if (nameEl) nameEl.innerText = currentUser.name;
-  if (avatarEl) avatarEl.innerText = currentUser.avatar;
-  
-  // Rendre l'onglet d'administration visible uniquement pour l'admin
-  var adminTabBtn = document.getElementById('btn-tab-admin');
-  if (currentUser.role === 'admin') {
-    if (adminTabBtn) adminTabBtn.style.display = 'flex';
-  } else {
-    if (adminTabBtn) adminTabBtn.style.display = 'none';
-  }
-  
-  // Basculer l'affichage (Masquer Login / Afficher App)
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  
-  initApp();
-}
-
-function doLogout() {
-  document.getElementById('login-user').value = '';
-  document.getElementById('login-pass').value = '';
-  if (document.getElementById('login-error')) document.getElementById('login-error').style.display = 'none';
-  
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('login-screen').style.display = 'flex';
-  currentUser = null;
-}
-
-function switchTab(tabId, element) {
-  var tabs = document.querySelectorAll('.tab-btn');
-  var contents = document.querySelectorAll('.tab-content');
-  
-  tabs.forEach(t => t.classList.remove('active'));
-  contents.forEach(c => c.classList.remove('active'));
-  
-  element.classList.add('active');
-  var targetContent = document.getElementById('tab-' + tabId);
-  if (targetContent) targetContent.classList.add('active');
-}
-
-function initApp() {
-  console.log("Application connectée avec succès pour " + currentUser.name);
-}
-
-// Connexion via la touche Entrée
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') {
-    doLogin();
-  }
-});
-
-/* ── SÉCURITÉ : FAKE-FUNCTIONS POUR ÉVITER LES BLOCAGES DE LA PAGE ── */
-function calculResteAPayer() {
-  var prix = parseFloat(document.getElementById('f-prix').value) || 0;
-  var paye = parseFloat(document.getElementById('f-montant-paye').value) || 0;
-  var resteSection = document.getElementById('reste-section');
-  var resteMontant = document.getElementById('reste-montant');
-  
-  if (prix > paye) {
-    if (resteSection) resteSection.style.display = 'block';
-    if (resteMontant) resteMontant.innerText = (prix - paye) + " Ar";
-  } else {
-    if (resteSection) resteSection.style.display = 'none';
-  }
-}
-
-function filterStock() { }
-function filterStockTable() { }
-function showAdminSection() { }
-function resetForm() { }
-function saveActivity() { }
-function openPaymentModal() { }
-function closeModalBtn() { }
+// Restaurer la session au chargement de la page
+restoreSession();
 
 </script>
-</body>
-</html>
