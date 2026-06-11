@@ -669,16 +669,7 @@ function loadActivitiesFromSheets(retryCount = 0) {
     .then(data => {
       if (Array.isArray(data)) {
         activities = data.map(function(a) {
-          let stock = [];
-          if (a.stock) {
-            let stockStr = typeof a.stock === 'string' ? a.stock : '';
-            if (stockStr.includes('ID:')) {
-              stock = stockStr.split(',').map(function(p) {
-                let m = p.trim().match(/ID:(\d+)×(\d+)/);
-                return m ? { id: parseInt(m[1]), qty: parseInt(m[2]) } : null;
-              }).filter(s => s);
-            }
-          }
+          var stock = parseStockStr(a.stock);
           return {
             id: a.id,           // = index de ligne Sheets (1, 2, 3...) — NE PAS changer
             rowIndex: a.id,     // copie explicite pour le delete
@@ -1333,11 +1324,32 @@ function renderActivities(q) {
 
 function fmtDate(d) {
   if (!d) return '—';
-  // Gérer ISO 8601 : "2026-06-09T21:00:00.000Z" ou "2026-06-09"
-  var clean = String(d).split('T')[0]; // garder seulement "2026-06-09"
-  var p = clean.split('-');
-  if (p.length !== 3) return String(d);
-  return p[2] + '/' + p[1] + '/' + p[0];
+  try {
+    // Convertir en objet Date pour gérer tous les formats
+    var dt = new Date(d);
+    if (isNaN(dt.getTime())) return String(d);
+    var day   = String(dt.getDate()).padStart(2, '0');
+    var month = String(dt.getMonth() + 1).padStart(2, '0');
+    var year  = dt.getFullYear();
+    return day + '/' + month + '/' + year;
+  } catch(e) {
+    return String(d);
+  }
+}
+
+// Parser "ID:4x1, ID:2x3" → [{id:4, qty:1}, {id:2, qty:3}]
+function parseStockStr(stock) {
+  if (!stock) return [];
+  if (Array.isArray(stock)) return stock;
+  if (typeof stock !== 'string' || stock.trim() === '') return [];
+  var result = [];
+  var parts = stock.split(',');
+  for (var i = 0; i < parts.length; i++) {
+    var p = parts[i].trim(); // "ID:4x1"
+    var m = p.match(/ID:(\d+)[xX×](\d+)/);
+    if (m) result.push({ id: parseInt(m[1]), qty: parseInt(m[2]) });
+  }
+  return result;
 }
 
 function filterActivities(q) { renderActivities(q); }
@@ -1506,7 +1518,8 @@ function payReste_old(id, montantAjoute) {
 function showDetail(id) {
   var a = activities.find(function(x){ return x.id===id; });
   if (!a) return;
-  var stockNames = a.stock.map(function(se){
+  var stockArr = parseStockStr(a.stock);
+  var stockNames = stockArr.map(function(se){
     var sid = typeof se === 'object' ? se.id : se;
     var sqty = typeof se === 'object' ? se.qty : null;
     var it = STOCK_ITEMS.find(function(i){ return i.id===sid; });
