@@ -923,17 +923,19 @@ function restoreSession() {
     try {
       const { login } = JSON.parse(session);
       if (USERS[login]) {
-        currentUser = { login: login, ...USERS[login] };
+        currentUser = Object.assign({ login: login }, USERS[login]);
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('app').style.display = 'block';
         document.getElementById('user-name').textContent = currentUser.name;
         document.getElementById('user-avatar').textContent = currentUser.initials;
+        var adminBtn = document.getElementById('btn-tab-admin');
+        if (adminBtn) adminBtn.style.display = (login === 'admin') ? 'inline-flex' : 'none';
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('f-date-reg').value = today;
         renderStockList();
         loadActivitiesFromSheets();
-        loadStockFromSheets();      // ← sync stock au démarrage
-        loadRavHistoryFromSheets(); // ← sync historique au démarrage
+        loadStockFromSheets();
+        loadRavHistoryFromSheets();
         console.log('✅ Session restaurée pour:', currentUser.name);
         return true;
       }
@@ -950,14 +952,19 @@ function restoreSession() {
 ══════════════════════════════════════════════════════ */
 
 // Utilisateurs dynamiques (chargés depuis localStorage + USERS de base)
-var dynamicUsers = JSON.parse(localStorage.getItem('gestact_users') || 'null');
+var dynamicUsers;
+try {
+  dynamicUsers = JSON.parse(localStorage.getItem('gestact_users') || 'null');
+} catch(e) { dynamicUsers = null; }
 if (!dynamicUsers) {
   dynamicUsers = JSON.parse(JSON.stringify(USERS));
   localStorage.setItem('gestact_users', JSON.stringify(dynamicUsers));
 }
 
 // Logs d'actions
-var actionLogs = JSON.parse(localStorage.getItem('gestact_logs') || '[]');
+var actionLogs;
+try { actionLogs = JSON.parse(localStorage.getItem('gestact_logs') || '[]'); }
+catch(e) { actionLogs = []; }
 
 function logAction(type, msg, icon, color) {
   var entry = {
@@ -1249,7 +1256,7 @@ function doLogin() {
   const p = document.getElementById('login-pass').value;
   const err = document.getElementById('login-error');
   if (USERS[u] && USERS[u].pass === p) {
-    currentUser = { login: u, ...USERS[u] };
+    currentUser = Object.assign({ login: u }, USERS[u]);
     // Sauvegarde la session dans localStorage
     localStorage.setItem('gestact_session', JSON.stringify({ login: u }));
     err.style.display = 'none';
