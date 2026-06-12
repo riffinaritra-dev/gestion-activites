@@ -1057,7 +1057,7 @@ const USERS = {
 
 const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwTqHSTlbkCvh3BhiC9nGDKoC3TsUsa3gZyw8Stuifz4tn7X6oIrC2u3LK5OVOnuwRMZA/exec';
 
-const STOCK_ITEMS = [
+let STOCK_ITEMS = [
   { id:1,  ref:'ATCL-1',  name:'Autocollant plastique',    desc:'Avec motif largeur 0.5m',              prix:'5000/m',        fournisseur:'TSARAHALANA',                         unit:'m',       qty:0,    min:5,   max:5   },
   { id:2,  ref:'CDR-1',   name:'Cadre sérigraphique',      desc:'Cadre en bois assemblé',               prix:'—',             fournisseur:'HERINIAIANA',                          unit:'Unité',   qty:9,    min:4,   max:10  },
   { id:3,  ref:'RSN-1',   name:'Catalyseur pour résine',   desc:'Durcissant à résine',                  prix:'25500/500ml',   fournisseur:'SPCI',                                unit:'mL',      qty:574,  min:100, max:1000},
@@ -1379,6 +1379,7 @@ function adminSaveArticle() {
   item.unit        = document.getElementById('edit-art-unit').value.trim()        || item.unit;
   item.min         = parseInt(document.getElementById('edit-art-min').value)      || item.min;
   item.max         = parseInt(document.getElementById('edit-art-max').value)      || item.max;
+  syncStockToSheets();
   renderAdminArticles();
   renderStockTable();
   logAction('article', 'Article ' + ref + ' modifié', 'ti-pencil', 'var(--c-warning)');
@@ -1944,7 +1945,12 @@ function loadRavHistoryFromSheets() {
 
 // Sauvegarder toutes les quantités de stock dans Sheets
 function syncStockToSheets() {
-  const qtys = STOCK_ITEMS.map(function(i){ return { id: i.id, qty: i.qty }; });
+  const qtys = STOCK_ITEMS.map(function(i){
+    return {
+      id: i.id, qty: i.qty, ref: i.ref, name: i.name, desc: i.desc,
+      fournisseur: i.fournisseur, prix: i.prix, unit: i.unit, min: i.min, max: i.max
+    };
+  });
   // Backup local au cas où Sheets est indisponible
   localStorage.setItem('gestact_stock_qtys', JSON.stringify(qtys));
   fetch(GOOGLE_SHEETS_URL, {
@@ -1956,16 +1962,25 @@ function syncStockToSheets() {
     .catch(function(e){ console.warn('❌ Sync stock erreur:', e); });
 }
 
-// Charger les quantités depuis Sheets et mettre à jour STOCK_ITEMS
+// Charger les quantités/détails depuis Sheets et mettre à jour STOCK_ITEMS
 function loadStockFromSheets() {
   fetch(GOOGLE_SHEETS_URL + '?action=getStock')
     .then(function(r){ return r.json(); })
     .then(function(data) {
       if (Array.isArray(data) && data.length > 0) {
-        // Sheets a des données → les appliquer
+        // Sheets a des données → les appliquer (et ajouter les articles inconnus localement)
         data.forEach(function(s) {
           var item = STOCK_ITEMS.find(function(i){ return i.id === s.id; });
-          if (item) item.qty = Number(s.qty) || 0;
+          if (item) {
+            item.qty = Number(s.qty) || 0;
+          } else if (s.ref) {
+            // Article créé ailleurs / persisté dans Sheets mais absent de STOCK_ITEMS local
+            STOCK_ITEMS.push({
+              id: s.id, ref: s.ref, name: s.name, desc: s.desc,
+              fournisseur: s.fournisseur, prix: s.prix, unit: s.unit,
+              qty: Number(s.qty) || 0, min: s.min, max: s.max
+            });
+          }
         });
         window.stockLoaded = true;
         renderStockList();
