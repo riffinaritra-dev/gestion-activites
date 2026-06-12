@@ -1371,7 +1371,7 @@ function adminLookupArticle(ref) {
 function adminSaveArticle() {
   var ref = document.getElementById('edit-art-ref').value.trim().toUpperCase();
   var item = STOCK_ITEMS.find(function(i){ return i.ref.toUpperCase() === ref; });
-  if (!item) { toast('Article "' + ref + '" non trouv\u00e9.', 'error'); return; }
+  if (!item) { toast('Article "' + ref + '" non trouvé.', 'error'); return; }
   item.name        = document.getElementById('edit-art-name').value.trim()        || item.name;
   item.desc        = document.getElementById('edit-art-desc').value.trim()        || item.desc;
   item.fournisseur = document.getElementById('edit-art-fournisseur').value.trim() || item.fournisseur;
@@ -1382,6 +1382,7 @@ function adminSaveArticle() {
   syncStockToSheets();
   renderAdminArticles();
   renderStockTable();
+  clearArticleForm();
   logAction('article', 'Article ' + ref + ' modifié', 'ti-pencil', 'var(--c-warning)');
   toast('Article "' + item.name + '" mis à jour.', 'success');
 }
@@ -1414,7 +1415,8 @@ function adminAddNewArticle() {
 function renderAdminArticles() {
   var list = document.getElementById('admin-articles-list');
   if (!list) return;
-  list.innerHTML = STOCK_ITEMS.map(function(item) {
+  var sorted = STOCK_ITEMS.slice().sort(function(a, b){ return a.ref.localeCompare(b.ref); });
+  list.innerHTML = sorted.map(function(item) {
     return '<div class="admin-art-row" onclick="adminSelectArticle(\'' + item.ref + '\')">' +
       '<div style="display:flex;align-items:center;gap:12px;">' +
         '<span style="font-family:monospace;font-size:12px;font-weight:700;color:var(--c-accent);background:var(--c-surface2);padding:3px 8px;border-radius:5px;">' + item.ref + '</span>' +
@@ -1649,6 +1651,7 @@ function renderStockList() {
   }
   ul.innerHTML = '';
   STOCK_ITEMS.filter(function(i){ return i.name.toLowerCase().includes(q) || i.ref.toLowerCase().includes(q); })
+    .sort(function(a, b){ return a.ref.localeCompare(b.ref); })
     .forEach(function(item) {
       const sel = selectedStock.findIndex(function(s){ return s.id === item.id; }) !== -1;
       const low = item.qty < item.min;
@@ -1812,7 +1815,7 @@ function renderStockTable(q) {
   q = q || '';
   const list = STOCK_ITEMS.filter(function(i){
     return i.name.toLowerCase().includes(q.toLowerCase()) || i.ref.toLowerCase().includes(q.toLowerCase());
-  });
+  }).sort(function(a, b){ return a.ref.localeCompare(b.ref); });
   document.getElementById('stock-table-count').textContent = list.length + ' article(s)';
   const container = document.getElementById('stock-table-container');
   if (!list.length) {
@@ -1972,6 +1975,15 @@ function loadStockFromSheets() {
         data.forEach(function(s) {
           var item = STOCK_ITEMS.find(function(i){ return i.id === s.id; });
           if (item) {
+            // Mettre à jour tous les champs depuis Sheets (sauf qty pour éviter les conflits)
+            if (s.ref) item.ref = s.ref;
+            if (s.name) item.name = s.name;
+            if (s.desc !== undefined) item.desc = s.desc;
+            if (s.fournisseur) item.fournisseur = s.fournisseur;
+            if (s.prix) item.prix = s.prix;
+            if (s.unit) item.unit = s.unit;
+            if (s.min !== undefined) item.min = s.min;
+            if (s.max !== undefined) item.max = s.max;
             item.qty = Number(s.qty) || 0;
           } else if (s.ref) {
             // Article créé ailleurs / persisté dans Sheets mais absent de STOCK_ITEMS local
