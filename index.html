@@ -1106,7 +1106,7 @@ function renderAdminArticles() {
   var list = document.getElementById('admin-articles-list');
   if (!list) return;
   list.innerHTML = STOCK_ITEMS.map(function(item) {
-    return '<div class="admin-art-row" onclick="adminSelectArticle('' + item.ref + '')">' +
+    return '<div class="admin-art-row" onclick="adminSelectArticle(\'' + item.ref + '\')">' +
       '<div style="display:flex;align-items:center;gap:12px;">' +
         '<span style="font-family:monospace;font-size:12px;font-weight:700;color:var(--c-accent);background:var(--c-surface2);padding:3px 8px;border-radius:5px;">' + item.ref + '</span>' +
         '<div><div style="font-weight:500;font-size:13px;">' + item.name + '</div>' +
@@ -1176,33 +1176,23 @@ function exportCSV(type) {
       var stock = Array.isArray(a.stock) ? a.stock.map(function(s){ return 'ID:'+s.id+'x'+s.qty; }).join(' | ') : (a.stock || '');
       rows.push([a.id, a.client, a.phone, a.dateReg, a.dateLiv, a.notes, stock, a.status, a.createdBy, a.prix, a.montantPaye, Math.max(0,(a.prix||0)-(a.montantPaye||0))]);
     });
-    var actCSV = rows.map(function(r){ return r.map(function(c){ return '"'+(c+'').replace(/"/g,'""')+'"'; }).join(','); }).join('
-');
+    var actCSV = rows.map(function(r){ return r.map(function(c){ return '"'+(c+'').replace(/"/g,'""')+'"'; }).join(','); }).join('\n');
     if (type === 'activities') { csv = actCSV; filename = 'activites.csv'; }
-    else csv += 'ACTIVITÉS
-' + actCSV + '
-
-';
+    else csv += 'ACTIVITÉS\n' + actCSV + '\n\n';
   }
   if (type === 'stock' || type === 'all') {
     var rows = [['ID','Référence','Nom','Description','Fournisseur','Prix','Unité','Qté','Min','Max']];
     STOCK_ITEMS.forEach(function(i){ rows.push([i.id,i.ref,i.name,i.desc,i.fournisseur,i.prix,i.unit,i.qty,i.min,i.max]); });
-    var stCSV = rows.map(function(r){ return r.map(function(c){ return '"'+(c+'').replace(/"/g,'""')+'"'; }).join(','); }).join('
-');
+    var stCSV = rows.map(function(r){ return r.map(function(c){ return '"'+(c+'').replace(/"/g,'""')+'"'; }).join(','); }).join('\n');
     if (type === 'stock') { csv = stCSV; filename = 'stock.csv'; }
-    else csv += 'STOCK
-' + stCSV + '
-
-';
+    else csv += 'STOCK\n' + stCSV + '\n\n';
   }
   if (type === 'ravitaillement' || type === 'all') {
     var rows = [['ID','Référence','Article','Quantité ajoutée','Date','Par']];
     ravHistory.forEach(function(r){ rows.push([r.id,r.ref,r.name,r.qty,r.date,r.by]); });
-    var ravCSV = rows.map(function(r){ return r.map(function(c){ return '"'+(c+'').replace(/"/g,'""')+'"'; }).join(','); }).join('
-');
+    var ravCSV = rows.map(function(r){ return r.map(function(c){ return '"'+(c+'').replace(/"/g,'""')+'"'; }).join(','); }).join('\n');
     if (type === 'ravitaillement') { csv = ravCSV; filename = 'ravitaillement.csv'; }
-    else csv += 'RAVITAILLEMENTS
-' + ravCSV;
+    else csv += 'RAVITAILLEMENTS\n' + ravCSV;
   }
   if (type === 'all') filename = 'gestact_export_complet.csv';
   var blob = new Blob(['﻿' + csv], {type:'text/csv;charset=utf-8;'});
