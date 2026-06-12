@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 <style>
 :root {
   --c-bg:#E8F8F7; --c-surface:#FFFFFF; --c-surface2:#D4F2F1;
@@ -864,7 +865,18 @@ tbody td{padding:13px 16px;color:var(--c-text);vertical-align:middle;}
           </div>
         </div>
 
-        <!-- Nouvelle opération -->
+        <!-- Graphique : Évolution du flux d'argent par mois -->
+        <div class="form-card" style="margin-bottom:28px;">
+          <div class="form-card-header">
+            <div class="icon-wrap"><i class="ti ti-chart-line"></i></div>
+            <h3>Évolution du flux d'argent par mois</h3>
+          </div>
+          <div class="form-card-body">
+            <div id="budget-chart" style="width:100%;height:350px;display:flex;align-items:center;justify-content:center;">
+              <p style="color:var(--c-text3);">Chargement du graphique...</p>
+            </div>
+          </div>
+        </div>
         <div class="form-card" style="margin-bottom:24px;">
           <div class="form-card-header">
             <div class="icon-wrap"><i class="ti ti-plus"></i></div>
@@ -2564,6 +2576,95 @@ function updateBudgetStats() {
   const balEl = document.getElementById('budget-balance');
   balEl.textContent = balance.toLocaleString('fr-FR') + ' Ar';
   balEl.style.color = balance >= 0 ? 'var(--c-success)' : 'var(--c-danger)';
+  
+  renderBudgetChart();
+}
+
+function renderBudgetChart() {
+  const container = document.getElementById('budget-chart');
+  if (!container) return;
+  
+  // Grouper les opérations par mois (YYYY-MM)
+  const monthlyData = {};
+  budgets.forEach(function(b) {
+    const dateStr = b.date; // format: YYYY-MM-DD
+    if (!dateStr) return;
+    const monthKey = dateStr.substring(0, 7); // YYYY-MM
+    if (!monthlyData[monthKey]) {
+      monthlyData[monthKey] = { in: 0, out: 0 };
+    }
+    if (b.type === 'in') {
+      monthlyData[monthKey].in += b.amount;
+    } else {
+      monthlyData[monthKey].out += b.amount;
+    }
+  });
+  
+  const months = Object.keys(monthlyData).sort();
+  if (months.length === 0) {
+    container.innerHTML = '<p style="color:var(--c-text3);">Aucune donnée pour afficher le graphique.</p>';
+    return;
+  }
+  
+  // Calculs pour le graphique
+  const maxValue = Math.max.apply(null, months.map(function(m) {
+    return Math.max(monthlyData[m].in, monthlyData[m].out);
+  }));
+  const padding = 40;
+  const barWidth = Math.max(30, Math.min(60, (100 - months.length) / months.length));
+  const chartWidth = padding * 2 + months.length * (barWidth * 2.5);
+  const chartHeight = 320;
+  const graphHeight = chartHeight - padding * 2;
+  
+  // SVG
+  let svg = '<svg viewBox="0 0 ' + chartWidth + ' ' + chartHeight + '" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;border-radius:10px;">';
+  
+  // Axes
+  svg += '<line x1="' + padding + '" y1="' + (chartHeight - padding) + '" x2="' + (chartWidth - padding) + '" y2="' + (chartHeight - padding) + '" stroke="var(--c-border)" stroke-width="2"/>';
+  svg += '<line x1="' + padding + '" y1="' + padding + '" x2="' + padding + '" y2="' + (chartHeight - padding) + '" stroke="var(--c-border)" stroke-width="2"/>';
+  
+  // Grille horizontale (5 niveaux)
+  const gridLevels = 5;
+  for (let i = 1; i <= gridLevels; i++) {
+    const y = chartHeight - padding - (graphHeight * i / gridLevels);
+    const val = Math.round(maxValue * i / gridLevels);
+    svg += '<line x1="' + padding + '" y1="' + y + '" x2="' + (chartWidth - padding) + '" y2="' + y + '" stroke="var(--c-surface2)" stroke-width="1"/>';
+    svg += '<text x="' + (padding - 8) + '" y="' + (y + 4) + '" font-size="11" fill="var(--c-text3)" text-anchor="end">' + (val / 1000).toFixed(0) + 'k</text>';
+  }
+  
+  // Barres
+  months.forEach(function(month, idx) {
+    const data = monthlyData[month];
+    const x = padding + idx * (chartWidth - padding * 2) / months.length + (chartWidth - padding * 2) / months.length / 3;
+    
+    // Barre "in" (ajout, vert)
+    const heightIn = (data.in / maxValue) * graphHeight;
+    const yIn = chartHeight - padding - heightIn;
+    svg += '<rect x="' + (x - barWidth / 2) + '" y="' + yIn + '" width="' + barWidth + '" height="' + heightIn + '" fill="var(--c-success)" rx="3"/>';
+    
+    // Barre "out" (retrait, rouge)
+    const heightOut = (data.out / maxValue) * graphHeight;
+    const yOut = chartHeight - padding - heightOut;
+    svg += '<rect x="' + (x + barWidth / 2) + '" y="' + yOut + '" width="' + barWidth + '" height="' + heightOut + '" fill="var(--c-danger)" rx="3"/>';
+    
+    // Label mois
+    const label = month.substring(5) + '/' + month.substring(0, 4);
+    const xLabel = x;
+    svg += '<text x="' + xLabel + '" y="' + (chartHeight - padding + 20) + '" font-size="11" fill="var(--c-text2)" text-anchor="middle">' + label + '</text>';
+  });
+  
+  // Légende
+  svg += '<g>';
+  svg += '<rect x="' + (chartWidth - 180) + '" y="' + 15 + '" width="160" height="50" fill="var(--c-surface2)" rx="6" stroke="var(--c-border)" stroke-width="1"/>';
+  svg += '<rect x="' + (chartWidth - 170) + '" y="' + 22 + '" width="12" height="12" fill="var(--c-success)" rx="2"/>';
+  svg += '<text x="' + (chartWidth - 150) + '" y="' + 30 + '" font-size="12" fill="var(--c-text)" font-weight="500">Ajouts</text>';
+  svg += '<rect x="' + (chartWidth - 170) + '" y="' + 40 + '" width="12" height="12" fill="var(--c-danger)" rx="2"/>';
+  svg += '<text x="' + (chartWidth - 150) + '" y="' + 48 + '" font-size="12" fill="var(--c-text)" font-weight="500">Retraits</text>';
+  svg += '</g>';
+  
+  svg += '</svg>';
+  
+  container.innerHTML = svg;
 }
 
 function deleteBudgetOperation(id) {
