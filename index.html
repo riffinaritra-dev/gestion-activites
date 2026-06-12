@@ -842,73 +842,72 @@ tbody td{padding:13px 16px;color:var(--c-text);vertical-align:middle;}
           <h3 style="font-size:18px;font-weight:700;margin-bottom:4px;">
             <i class="ti ti-wallet" style="color:var(--c-accent);margin-right:8px;"></i>Gestion de Budget
           </h3>
-          <p style="font-size:13px;color:var(--c-text3);">Définissez et suivez les budgets par projet ou par période.</p>
+          <p style="font-size:13px;color:var(--c-text3);">Enregistrez les ajouts et retraits de budget du projet.</p>
         </div>
 
         <!-- Statistiques budget -->
         <div class="stats-row" style="margin-bottom:28px;">
           <div class="stat-card">
-            <div class="stat-label">Budget total</div>
-            <div class="stat-value" id="budget-total">0 Ar</div>
-            <div class="stat-sub">alloué</div>
+            <div class="stat-label">Total ajouts</div>
+            <div class="stat-value" id="budget-total-in" style="color:var(--c-success)">0 Ar</div>
+            <div class="stat-sub">crédité</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Dépensé</div>
-            <div class="stat-value" id="budget-spent" style="color:var(--c-warning)">0 Ar</div>
-            <div class="stat-sub">sur les activités</div>
+            <div class="stat-label">Total retraits</div>
+            <div class="stat-value" id="budget-total-out" style="color:var(--c-danger)">0 Ar</div>
+            <div class="stat-sub">débité</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Restant</div>
-            <div class="stat-value" id="budget-remaining" style="color:var(--c-success)">0 Ar</div>
+            <div class="stat-label">Solde actuel</div>
+            <div class="stat-value" id="budget-balance">0 Ar</div>
             <div class="stat-sub">disponible</div>
           </div>
         </div>
 
-        <!-- Créer un nouveau budget -->
+        <!-- Nouvelle opération -->
         <div class="form-card" style="margin-bottom:24px;">
           <div class="form-card-header">
             <div class="icon-wrap"><i class="ti ti-plus"></i></div>
-            <h3>Créer un nouveau budget</h3>
+            <h3>Nouvelle opération</h3>
           </div>
           <div class="form-card-body">
             <div class="form-grid">
               <div class="form-group">
-                <label>Nom du budget</label>
-                <input type="text" id="budget-name" placeholder="ex: Projet Q1 2024">
+                <label>Type d'opération</label>
+                <select id="budget-op-type">
+                  <option value="in">Ajout de budget</option>
+                  <option value="out">Retrait de budget</option>
+                </select>
               </div>
               <div class="form-group">
-                <label>Montant alloué</label>
-                <input type="number" id="budget-amount" placeholder="0" min="0" step="1000">
+                <label>Montant</label>
+                <input type="number" id="budget-op-amount" placeholder="0" min="0" step="1000">
               </div>
               <div class="form-group">
-                <label>Date de début</label>
-                <input type="date" id="budget-start-date">
-              </div>
-              <div class="form-group">
-                <label>Date de fin</label>
-                <input type="date" id="budget-end-date">
+                <label>Date de l'opération</label>
+                <input type="date" id="budget-op-date">
               </div>
               <div class="form-group span2">
                 <label>Description</label>
-                <textarea id="budget-description" placeholder="Description du budget..."></textarea>
+                <textarea id="budget-op-description" placeholder="ex: Achat de fournitures, apport client..."></textarea>
               </div>
             </div>
             <div class="form-actions">
               <button class="btn-secondary" onclick="resetBudgetForm()">
                 <i class="ti ti-refresh"></i> Réinitialiser
               </button>
-              <button class="btn-save" onclick="saveBudget()">
-                <i class="ti ti-device-floppy"></i> Créer le budget
+              <button class="btn-save" onclick="saveBudgetOperation()">
+                <i class="ti ti-device-floppy"></i> Enregistrer l'opération
               </button>
             </div>
           </div>
         </div>
 
-        <!-- Liste des budgets -->
+        <!-- Historique des opérations -->
         <div class="form-card">
           <div class="form-card-header">
-            <div class="icon-wrap"><i class="ti ti-list"></i></div>
-            <h3>Budgets actifs</h3>
+            <div class="icon-wrap"><i class="ti ti-history"></i></div>
+            <h3>Historique des opérations</h3>
           </div>
           <div class="form-card-body">
             <div id="budget-list" style="max-height:600px;overflow-y:auto;"></div>
@@ -2446,125 +2445,105 @@ function toast(msg, type) {
 }
 
 /* ── GESTION DE BUDGET ── */
-function saveBudget() {
-  const name = document.getElementById('budget-name').value.trim();
-  const amount = parseFloat(document.getElementById('budget-amount').value) || 0;
-  const startDate = document.getElementById('budget-start-date').value;
-  const endDate = document.getElementById('budget-end-date').value;
-  const description = document.getElementById('budget-description').value.trim();
+function saveBudgetOperation() {
+  const type = document.getElementById('budget-op-type').value;
+  const amount = parseFloat(document.getElementById('budget-op-amount').value) || 0;
+  const date = document.getElementById('budget-op-date').value;
+  const description = document.getElementById('budget-op-description').value.trim();
 
-  if (!name) { toast('Saisissez un nom de budget.', 'error'); return; }
   if (!amount || amount <= 0) { toast('Saisissez un montant valide.', 'error'); return; }
-  if (!startDate) { toast('Saisissez une date de début.', 'error'); return; }
-  if (!endDate) { toast('Saisissez une date de fin.', 'error'); return; }
+  if (!date) { toast('Saisissez une date.', 'error'); return; }
+  if (!description) { toast('Saisissez une description.', 'error'); return; }
 
-  const budget = {
+  const op = {
     id: Date.now(),
-    name: name,
+    type: type,
     amount: amount,
-    startDate: startDate,
-    endDate: endDate,
+    date: date,
     description: description,
-    createdAt: new Date().toISOString().split('T')[0]
+    createdBy: currentUser ? currentUser.login : '',
+    createdAt: new Date().toISOString()
   };
 
-  budgets.push(budget);
+  budgets.push(op);
   localStorage.setItem('gestact_budgets', JSON.stringify(budgets));
-  toast('Budget "' + name + '" créé avec succès !', 'success');
+  toast((type === 'in' ? 'Ajout' : 'Retrait') + ' de budget enregistré.', 'success');
   resetBudgetForm();
   renderBudgets();
   updateBudgetStats();
 }
 
 function resetBudgetForm() {
-  document.getElementById('budget-name').value = '';
-  document.getElementById('budget-amount').value = '';
-  document.getElementById('budget-start-date').value = '';
-  document.getElementById('budget-end-date').value = '';
-  document.getElementById('budget-description').value = '';
+  document.getElementById('budget-op-type').value = 'in';
+  document.getElementById('budget-op-amount').value = '';
+  document.getElementById('budget-op-date').value = '';
+  document.getElementById('budget-op-description').value = '';
 }
 
 function renderBudgets() {
   const container = document.getElementById('budget-list');
   if (!budgets.length) {
-    container.innerHTML = '<p style="text-align:center;color:var(--c-text3);padding:20px;">Aucun budget créé. Créez un nouveau budget ci-dessus.</p>';
+    container.innerHTML = '<p style="text-align:center;color:var(--c-text3);padding:20px;">Aucune opération enregistrée.</p>';
     return;
   }
 
-  container.innerHTML = budgets.map(function(b) {
-    const spent = calculateBudgetSpent(b);
-    const remaining = b.amount - spent;
-    const percentage = Math.round((spent / b.amount) * 100);
-    const statusColor = percentage > 80 ? 'var(--c-danger)' : (percentage > 50 ? 'var(--c-warning)' : 'var(--c-success)');
+  const sorted = budgets.slice().sort(function(a, b) {
+    return new Date(b.date) - new Date(a.date) || b.id - a.id;
+  });
 
-    return '<div style="padding:16px;border:1px solid var(--c-border);border-radius:10px;margin-bottom:12px;background:var(--c-surface2);">' +
-      '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">' +
+  container.innerHTML = sorted.map(function(b) {
+    const isIn = b.type === 'in';
+    const color = isIn ? 'var(--c-success)' : 'var(--c-danger)';
+    const bg = isIn ? 'var(--c-success-light)' : 'var(--c-danger-light)';
+    const icon = isIn ? 'ti-arrow-up' : 'ti-arrow-down';
+    const sign = isIn ? '+ ' : '- ';
+
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border:1px solid var(--c-border);border-radius:10px;margin-bottom:10px;background:var(--c-surface2);">' +
+      '<div style="display:flex;align-items:center;gap:12px;">' +
+        '<div style="width:36px;height:36px;border-radius:50%;background:' + bg + ';color:' + color + ';display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
+          '<i class="ti ' + icon + '"></i>' +
+        '</div>' +
         '<div>' +
-          '<h4 style="font-weight:700;color:var(--c-text);margin-bottom:2px;">' + b.name + '</h4>' +
-          '<p style="font-size:12px;color:var(--c-text3);">' + b.startDate + ' au ' + b.endDate + '</p>' +
-          (b.description ? '<p style="font-size:12px;color:var(--c-text2);margin-top:4px;">' + b.description + '</p>' : '') +
+          '<p style="font-weight:600;color:var(--c-text);margin-bottom:2px;">' + b.description + '</p>' +
+          '<p style="font-size:12px;color:var(--c-text3);">' + formatDateFr(b.date) + (b.createdBy ? ' · ' + b.createdBy : '') + '</p>' +
         '</div>' +
-        '<button onclick="deleteBudget(' + b.id + ')" style="padding:4px 10px;background:var(--c-danger-light);color:var(--c-danger);border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background=\'var(--c-danger)\';this.style.color=\'white\'" onmouseout="this.style.background=\'var(--c-danger-light)\';this.style.color=\'var(--c-danger)\'">' +
-          '<i class="ti ti-trash" style="margin-right:4px;"></i>Supprimer' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:10px;">' +
+        '<span style="font-weight:700;color:' + color + ';white-space:nowrap;">' + sign + b.amount.toLocaleString('fr-FR') + ' Ar</span>' +
+        '<button onclick="deleteBudgetOperation(' + b.id + ')" style="padding:4px 8px;background:var(--c-danger-light);color:var(--c-danger);border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;">' +
+          '<i class="ti ti-trash"></i>' +
         '</button>' +
-      '</div>' +
-      '<div style="margin-bottom:8px;">' +
-        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">' +
-          '<span style="font-size:12px;font-weight:600;color:var(--c-text2);">Progression</span>' +
-          '<span style="font-size:13px;font-weight:700;color:' + statusColor + ';">' + percentage + '%</span>' +
-        '</div>' +
-        '<div style="height:6px;background:var(--c-border);border-radius:3px;overflow:hidden;">' +
-          '<div style="width:' + Math.min(100, percentage) + '%;height:100%;background:' + statusColor + ';transition:width 0.3s ease;"></div>' +
-        '</div>' +
-      '</div>' +
-      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--c-border);">' +
-        '<div style="text-align:center;">' +
-          '<p style="font-size:11px;color:var(--c-text3);text-transform:uppercase;margin-bottom:2px;">Budget</p>' +
-          '<p style="font-size:14px;font-weight:700;color:var(--c-text);">' + b.amount.toLocaleString('fr-FR') + ' Ar</p>' +
-        '</div>' +
-        '<div style="text-align:center;">' +
-          '<p style="font-size:11px;color:var(--c-text3);text-transform:uppercase;margin-bottom:2px;">Dépensé</p>' +
-          '<p style="font-size:14px;font-weight:700;color:var(--c-warning);">' + spent.toLocaleString('fr-FR') + ' Ar</p>' +
-        '</div>' +
-        '<div style="text-align:center;">' +
-          '<p style="font-size:11px;color:var(--c-text3);text-transform:uppercase;margin-bottom:2px;">Restant</p>' +
-          '<p style="font-size:14px;font-weight:700;color:' + (remaining > 0 ? 'var(--c-success)' : 'var(--c-danger)') + ';">' + remaining.toLocaleString('fr-FR') + ' Ar</p>' +
-        '</div>' +
       '</div>' +
     '</div>';
   }).join('');
 }
 
-function calculateBudgetSpent(budget) {
-  const budgetStart = new Date(budget.startDate);
-  const budgetEnd = new Date(budget.endDate);
-  
-  let spent = 0;
-  activities.forEach(function(a) {
-    const actDate = new Date(a.dateReg);
-    if (actDate >= budgetStart && actDate <= budgetEnd) {
-      spent += (a.prix || 0);
-    }
-  });
-  
-  return spent;
+function formatDateFr(dateStr) {
+  if (!dateStr) return '';
+  const parts = dateStr.split('-');
+  if (parts.length !== 3) return dateStr;
+  return parts[2] + '/' + parts[1] + '/' + parts[0];
 }
 
 function updateBudgetStats() {
-  const totalBudget = budgets.reduce(function(sum, b) { return sum + b.amount; }, 0);
-  const totalSpent = budgets.reduce(function(sum, b) { return sum + calculateBudgetSpent(b); }, 0);
-  const totalRemaining = totalBudget - totalSpent;
+  const totalIn = budgets.filter(function(b) { return b.type === 'in'; })
+    .reduce(function(sum, b) { return sum + b.amount; }, 0);
+  const totalOut = budgets.filter(function(b) { return b.type === 'out'; })
+    .reduce(function(sum, b) { return sum + b.amount; }, 0);
+  const balance = totalIn - totalOut;
 
-  document.getElementById('budget-total').textContent = totalBudget.toLocaleString('fr-FR') + ' Ar';
-  document.getElementById('budget-spent').textContent = totalSpent.toLocaleString('fr-FR') + ' Ar';
-  document.getElementById('budget-remaining').textContent = totalRemaining.toLocaleString('fr-FR') + ' Ar';
+  document.getElementById('budget-total-in').textContent = totalIn.toLocaleString('fr-FR') + ' Ar';
+  document.getElementById('budget-total-out').textContent = totalOut.toLocaleString('fr-FR') + ' Ar';
+  const balEl = document.getElementById('budget-balance');
+  balEl.textContent = balance.toLocaleString('fr-FR') + ' Ar';
+  balEl.style.color = balance >= 0 ? 'var(--c-success)' : 'var(--c-danger)';
 }
 
-function deleteBudget(id) {
-  if (!confirm('Supprimer ce budget ?')) return;
+function deleteBudgetOperation(id) {
+  if (!confirm('Supprimer cette opération ?')) return;
   budgets = budgets.filter(function(b) { return b.id !== id; });
   localStorage.setItem('gestact_budgets', JSON.stringify(budgets));
-  toast('Budget supprimé.', 'success');
+  toast('Opération supprimée.', 'success');
   renderBudgets();
   updateBudgetStats();
 }
