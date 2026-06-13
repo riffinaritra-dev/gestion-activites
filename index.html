@@ -170,43 +170,113 @@ body{font-family:var(--font);background:var(--c-bg);color:var(--c-text);min-heig
 
 /* LOGIN */
 #login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(135deg,#00A39F 0%,#0DB8AA 30%,#0FC4B1 70%,#1DD4C0 100%);position:relative;overflow:hidden;}
+  background:linear-gradient(180deg, #0A3A38 0%, #00A39F 45%, #2B7A78 75%, #006A67 100%);
+  position:relative;overflow:hidden;}
 
-/* Formes abstraites animées en background */
-#login-screen::before{
-  content:'';position:absolute;width:800px;height:800px;border-radius:50%;
-  background:radial-gradient(circle, rgba(255,255,255,0.08), transparent);
-  top:-300px;right:-200px;pointer-events:none;
-  animation: float 8s ease-in-out infinite;
-}
-#login-screen::after{
-  content:'';position:absolute;width:600px;height:600px;border-radius:50%;
-  background:radial-gradient(circle, rgba(255,255,255,0.06), transparent);
-  bottom:-200px;left:-150px;pointer-events:none;
-  animation: float 10s ease-in-out infinite reverse;
+/* ---------- ANIMATION PAYSAGE DYNAMIQUE ---------- */
+.login-bg{position:absolute;inset:0;overflow:hidden;z-index:0;}
+
+/* Étoiles */
+.login-bg .stars{position:absolute;inset:0;width:100%;height:60%;transition:opacity 2s ease;}
+.login-bg .star{position:absolute;background:#ffffff;border-radius:50%;animation:twinkle ease-in-out infinite;}
+@keyframes twinkle{
+  0%,100%{opacity:0.2;transform:scale(0.8);}
+  50%{opacity:1;transform:scale(1.2);}
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0px) translateX(0px); }
-  50% { transform: translateY(-40px) translateX(20px); }
+/* Lune (position pilotée par JS via top/left) */
+.login-bg .moon{
+  position:absolute;top:8%;left:80%;width:70px;height:70px;
+  background:radial-gradient(circle at 35% 35%, #ffffff 0%, #e8f6f5 60%, #c9eceb 100%);
+  border-radius:50%;
+  box-shadow:0 0 40px 10px rgba(255,255,255,0.35), 0 0 90px 30px rgba(0,163,159,0.25);
+  animation:moonGlow 6s ease-in-out infinite;
+  transition:top 2s linear, left 2s linear, opacity 1.5s ease;
+}
+@keyframes moonGlow{
+  0%,100%{box-shadow:0 0 40px 10px rgba(255,255,255,0.35), 0 0 90px 30px rgba(0,163,159,0.25);}
+  50%{box-shadow:0 0 55px 18px rgba(255,255,255,0.5), 0 0 110px 40px rgba(0,163,159,0.35);}
 }
 
-@keyframes glow {
-  0%, 100% { opacity: 0.25; filter: drop-shadow(0 2px 8px rgba(255,255,255,0.2)); }
-  50% { opacity: 0.45; filter: drop-shadow(0 6px 20px rgba(255,255,255,0.35)); }
+/* Soleil (position pilotée par JS via top/left) */
+.login-bg .sun{
+  position:absolute;top:8%;left:80%;width:80px;height:80px;
+  background:radial-gradient(circle at 35% 35%, #FFF8D6 0%, #FFD86B 55%, #FFA94D 100%);
+  border-radius:50%;
+  box-shadow:0 0 50px 16px rgba(255,216,107,0.55), 0 0 110px 40px rgba(255,169,77,0.35);
+  animation:sunGlow 5s ease-in-out infinite;
+  transition:top 2s linear, left 2s linear, opacity 1.5s ease, background 2s ease, box-shadow 2s ease;
+  opacity:0;
+}
+@keyframes sunGlow{
+  0%,100%{box-shadow:0 0 50px 16px rgba(255,216,107,0.55), 0 0 110px 40px rgba(255,169,77,0.35);}
+  50%{box-shadow:0 0 65px 22px rgba(255,216,107,0.7), 0 0 130px 50px rgba(255,169,77,0.45);}
 }
 
-/* Illustration SVG motivante */
-#login-screen .login-illustration {
-  position: absolute;
-  width: 300px;
-  height: 300px;
-  top: 15%;
-  left: 5%;
-  opacity: 0.3;
-  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15));
-  animation: glow 4s ease-in-out infinite;
-  z-index: 0;
+/* Transition globale du ciel */
+.login-bg{transition:background 2.5s ease;}
+#login-screen{transition:background 2.5s ease;}
+
+
+.login-bg .cloud{position:absolute;background:rgba(255,255,255,0.85);border-radius:50px;filter:blur(1px);opacity:0.7;}
+.login-bg .cloud::before,.login-bg .cloud::after{content:'';position:absolute;background:rgba(255,255,255,0.85);border-radius:50%;}
+.login-bg .cloud1{width:120px;height:36px;top:12%;left:-150px;animation:drift1 45s linear infinite;}
+.login-bg .cloud1::before{width:60px;height:60px;top:-30px;left:15px;}
+.login-bg .cloud1::after{width:50px;height:50px;top:-22px;left:60px;}
+.login-bg .cloud2{width:90px;height:28px;top:22%;left:-120px;animation:drift2 60s linear infinite;animation-delay:-15s;}
+.login-bg .cloud2::before{width:45px;height:45px;top:-22px;left:10px;}
+.login-bg .cloud2::after{width:38px;height:38px;top:-16px;left:45px;}
+.login-bg .cloud3{width:150px;height:42px;top:6%;left:-180px;animation:drift1 70s linear infinite;animation-delay:-35s;}
+.login-bg .cloud3::before{width:70px;height:70px;top:-35px;left:20px;}
+.login-bg .cloud3::after{width:60px;height:60px;top:-28px;left:75px;}
+@keyframes drift1{from{transform:translateX(0);}to{transform:translateX(calc(100vw + 250px));}}
+@keyframes drift2{from{transform:translateX(0);}to{transform:translateX(calc(100vw + 200px));}}
+
+/* Montagnes (parallaxe) */
+.login-bg .mountains{position:absolute;bottom:12%;width:100%;height:35%;}
+.login-bg .mountain-layer{position:absolute;bottom:0;width:200%;height:100%;background-repeat:repeat-x;background-size:50% 100%;}
+.login-bg .mountain-back{
+  background:linear-gradient(135deg,#0A3A38 0%,#145c58 100%);
+  clip-path:polygon(0% 100%, 0% 40%, 10% 55%, 20% 30%, 32% 50%, 45% 20%, 58% 48%, 70% 25%, 82% 52%, 92% 35%, 100% 50%, 100% 100%);
+  opacity:0.85;animation:parallax1 90s linear infinite;
+}
+.login-bg .mountain-front{
+  background:linear-gradient(135deg,#006A67 0%,#0A3A38 100%);
+  clip-path:polygon(0% 100%, 0% 60%, 12% 75%, 25% 50%, 38% 70%, 50% 45%, 63% 72%, 75% 48%, 88% 70%, 100% 55%, 100% 100%);
+  animation:parallax2 60s linear infinite;
+}
+@keyframes parallax1{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+@keyframes parallax2{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+
+/* Herbe ondulante (double couche) */
+.login-bg .grass-field{position:absolute;bottom:0;left:0;width:100%;height:14%;overflow:hidden;}
+.login-bg .grass-layer{position:absolute;bottom:0;width:200%;height:100%;background-repeat:repeat-x;background-size:50% 100%;transform-origin:bottom;}
+.login-bg .grass-back{
+  background-image:repeating-linear-gradient(90deg, transparent 0px, transparent 6px, rgba(0,106,103,0.6) 6px, rgba(0,106,103,0.6) 8px);
+  background-color:#00302e;
+  clip-path:polygon(0% 100%, 0% 60%, 2% 55%, 4% 62%, 6% 50%, 8% 58%, 10% 48%, 12% 60%, 14% 52%, 16% 58%, 18% 46%, 20% 55%, 22% 50%, 24% 60%, 26% 48%, 28% 56%, 30% 50%, 32% 58%, 34% 52%, 36% 60%, 38% 50%, 40% 56%, 42% 48%, 44% 58%, 46% 52%, 48% 60%, 50% 50%, 100% 50%, 100% 100%);
+  animation:sway 6s ease-in-out infinite, scroll1 40s linear infinite;
+}
+.login-bg .grass-front{
+  background-color:#014b47;
+  clip-path:polygon(0% 100%, 0% 70%, 3% 60%, 6% 72%, 9% 58%, 12% 70%, 15% 55%, 18% 68%, 21% 58%, 24% 70%, 27% 56%, 30% 68%, 33% 58%, 36% 70%, 39% 56%, 42% 68%, 45% 60%, 48% 70%, 50% 60%, 100% 60%, 100% 100%);
+  animation:sway 4.5s ease-in-out infinite reverse, scroll2 25s linear infinite;
+}
+@keyframes sway{0%,100%{transform:scaleY(1) translateY(0);}50%{transform:scaleY(1.04) translateY(-3px);}}
+@keyframes scroll1{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+@keyframes scroll2{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+
+/* Lucioles */
+.login-bg .firefly{
+  position:absolute;width:4px;height:4px;background:#c9f7d5;border-radius:50%;
+  box-shadow:0 0 8px 3px rgba(201,247,213,0.8);
+  animation:floaty ease-in-out infinite;
+}
+@keyframes floaty{
+  0%,100%{transform:translate(0,0);opacity:0.3;}
+  25%{transform:translate(15px,-20px);opacity:1;}
+  50%{transform:translate(-10px,-35px);opacity:0.6;}
+  75%{transform:translate(20px,-15px);opacity:0.9;}
 }
 .login-card{background:var(--c-surface);border-radius:20px;padding:48px 44px;width:400px;
   box-shadow:0 12px 48px rgba(0,0,0,0.20);position:relative;z-index:1;animation:loginIn 0.5s cubic-bezier(0.22,1,0.36,1);}
@@ -476,35 +546,29 @@ tbody td{padding:13px 16px;color:var(--c-text);vertical-align:middle;}
 
 <!-- LOGIN -->
 <div id="login-screen">
-  <!-- Illustration motivante SVG -->
-  <svg class="login-illustration" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-    <!-- Cercle de base -->
-    <circle cx="100" cy="100" r="90" fill="none" stroke="#FFFFFF" stroke-width="2" opacity="0.4"/>
-    
-    <!-- Montagne/Pic -->
-    <polygon points="80,140 100,60 120,140" fill="#FFFFFF" opacity="0.8"/>
-    <polygon points="95,140 110,80 125,140" fill="#FFFFFF" opacity="0.6"/>
-    
-    <!-- Étoile au sommet -->
-    <polygon points="100,40 105,50 115,52 108,58 110,68 100,63 90,68 92,58 85,52 95,50" fill="#FFD700" opacity="0.9"/>
-    
-    <!-- Traits de lumière -->
-    <line x1="100" y1="20" x2="100" y2="35" stroke="#FFD700" stroke-width="2" opacity="0.7"/>
-    <line x1="75" y1="35" x2="85" y2="45" stroke="#FFD700" stroke-width="2" opacity="0.6"/>
-    <line x1="125" y1="35" x2="115" y2="45" stroke="#FFD700" stroke-width="2" opacity="0.6"/>
-    
-    <!-- Mains qui applaudissent -->
-    <g opacity="0.85">
-      <circle cx="60" cy="150" r="8" fill="#FFFFFF"/>
-      <path d="M 50 145 Q 45 140 50 135" stroke="#FFFFFF" stroke-width="2" fill="none"/>
-      <path d="M 70 145 Q 75 140 70 135" stroke="#FFFFFF" stroke-width="2" fill="none"/>
-    </g>
-    <g opacity="0.85">
-      <circle cx="140" cy="150" r="8" fill="#FFFFFF"/>
-      <path d="M 150 145 Q 155 140 150 135" stroke="#FFFFFF" stroke-width="2" fill="none"/>
-      <path d="M 130 145 Q 125 140 130 135" stroke="#FFFFFF" stroke-width="2" fill="none"/>
-    </g>
-  </svg>
+  <!-- Paysage animé dynamique (jour/nuit selon heure & géoloc) -->
+  <div class="login-bg" id="loginBg">
+    <div class="stars" id="starsContainer"></div>
+    <div class="sun" id="sunEl"></div>
+    <div class="moon" id="moonEl"></div>
+    <div class="cloud cloud1"></div>
+    <div class="cloud cloud2"></div>
+    <div class="cloud cloud3"></div>
+    <div class="mountains">
+      <div class="mountain-layer mountain-back"></div>
+      <div class="mountain-layer mountain-front"></div>
+    </div>
+    <div class="firefly" style="bottom:18%; left:15%; animation-duration:7s;"></div>
+    <div class="firefly" style="bottom:22%; left:35%; animation-duration:9s; animation-delay:-2s;"></div>
+    <div class="firefly" style="bottom:16%; left:55%; animation-duration:8s; animation-delay:-4s;"></div>
+    <div class="firefly" style="bottom:25%; left:75%; animation-duration:6.5s; animation-delay:-1s;"></div>
+    <div class="firefly" style="bottom:19%; left:88%; animation-duration:7.5s; animation-delay:-3s;"></div>
+    <div class="grass-field">
+      <div class="grass-layer grass-back"></div>
+      <div class="grass-layer grass-front"></div>
+    </div>
+  </div>
+
 
   <div class="login-card">
     <div class="login-logo">
@@ -2678,5 +2742,225 @@ function deleteBudgetOperation(id) {
 
 // Restaurer la session au chargement de la page
 restoreSession();
+
+// Génération dynamique des étoiles du fond de connexion
+(function() {
+  const starsContainer = document.getElementById('starsContainer');
+  if (!starsContainer) return;
+  const starCount = 60;
+  for (let i = 0; i < starCount; i++) {
+    const star = document.createElement('div');
+    star.className = 'star';
+    const size = Math.random() * 2 + 1;
+    star.style.width = size + 'px';
+    star.style.height = size + 'px';
+    star.style.left = Math.random() * 100 + '%';
+    star.style.top = Math.random() * 55 + '%';
+    star.style.animationDuration = (Math.random() * 3 + 2) + 's';
+    star.style.animationDelay = (Math.random() * 5) + 's';
+    starsContainer.appendChild(star);
+  }
+})();
+
+// ============================================================
+// CYCLE JOUR/NUIT DYNAMIQUE - basé sur lever/coucher de soleil
+// ============================================================
+(function() {
+  const screen = document.getElementById('login-screen');
+  const bg = document.getElementById('loginBg');
+  const sun = document.getElementById('sunEl');
+  const moon = document.getElementById('moonEl');
+  const stars = document.getElementById('starsContainer');
+  if (!screen || !sun || !moon) return;
+
+  // Calcule le lever et coucher de soleil (algorithme NOAA simplifié)
+  function getSunTimes(date, lat, lng) {
+    const rad = Math.PI / 180;
+    const dayMs = 1000 * 60 * 60 * 24;
+    const J1970 = 2440588, J2000 = 2451545;
+    const toJulian = d => d.valueOf() / dayMs - 0.5 + J1970;
+    const fromJulian = j => new Date((j + 0.5 - J1970) * dayMs);
+    const toDays = d => toJulian(d) - J2000;
+
+    const e = rad * 23.4397;
+    const solarMeanAnomaly = d => rad * (357.5291 + 0.98560028 * d);
+    const eclipticLongitude = M => {
+      const C = rad * (1.9148 * Math.sin(M) + 0.02 * Math.sin(2*M) + 0.0003 * Math.sin(3*M));
+      const P = rad * 102.9372;
+      return M + C + P + Math.PI;
+    };
+    const declination = l => Math.asin(Math.sin(e) * Math.sin(l));
+    const julianCycle = (d, lw) => Math.round(d - 0.0009 - lw / (2*Math.PI));
+    const approxTransit = (Ht, lw, n) => 0.0009 + (Ht + lw) / (2*Math.PI) + n;
+    const solarTransitJ = (ds, M, L) => J2000 + ds + 0.0053*Math.sin(M) - 0.0069*Math.sin(2*L);
+    const hourAngle = (h, phi, d) => Math.acos((Math.sin(h) - Math.sin(phi)*Math.sin(d)) / (Math.cos(phi)*Math.cos(d)));
+    const observerAngle = -0.83 * rad; // sunrise/sunset standard
+
+    const lw = rad * -lng;
+    const phi = rad * lat;
+    const d = toDays(date);
+    const n = julianCycle(d, lw);
+    const ds = approxTransit(0, lw, n);
+    const M = solarMeanAnomaly(ds);
+    const L = eclipticLongitude(M);
+    const dec = declination(L);
+    const Jnoon = solarTransitJ(ds, M, L);
+
+    const w = hourAngle(observerAngle, phi, dec);
+    if (isNaN(w)) return null; // soleil ne se lève/couche pas (régions polaires)
+    const a = approxTransit(w, lw, n);
+    const Jset = solarTransitJ(a, M, L);
+    const Jrise = Jnoon - (Jset - Jnoon);
+
+    return { sunrise: fromJulian(Jrise), sunset: fromJulian(Jset) };
+  }
+
+  // Position en arc (0 = horizon gauche, 1 = horizon droite) -> top/left en %
+  function arcPosition(progress) {
+    // progress: 0 = lever (horizon), 0.5 = zénith, 1 = coucher (horizon)
+    const left = 10 + progress * 80; // de 10% à 90%
+    const top = 70 - Math.sin(progress * Math.PI) * 60; // arc: 70% (horizon) -> 10% (zénith)
+    return { top: top + '%', left: left + '%' };
+  }
+
+  function interpolateColor(c1, c2, t) {
+    const p1 = c1.match(/\d+/g).map(Number);
+    const p2 = c2.match(/\d+/g).map(Number);
+    const r = Math.round(p1[0] + (p2[0]-p1[0]) * t);
+    const g = Math.round(p1[1] + (p2[1]-p1[1]) * t);
+    const b = Math.round(p1[2] + (p2[2]-p1[2]) * t);
+    return `rgb(${r},${g},${b})`;
+  }
+
+  // Palettes de ciel
+  const PALETTES = {
+    night:   ['rgb(10,58,56)',  'rgb(0,163,159)', 'rgb(43,122,120)', 'rgb(0,106,103)'],
+    sunrise: ['rgb(255,154,90)','rgb(255,201,107)','rgb(120,150,180)','rgb(70,110,140)'],
+    day:     ['rgb(135,206,250)','rgb(176,224,230)','rgb(100,180,200)','rgb(70,150,170)'],
+    sunset:  ['rgb(255,120,80)','rgb(255,180,90)','rgb(90,80,120)','rgb(40,40,80)']
+  };
+
+  function applySky(colors) {
+    screen.style.background = `linear-gradient(180deg, ${colors[0]} 0%, ${colors[1]} 45%, ${colors[2]} 75%, ${colors[3]} 100%)`;
+  }
+
+  function update(lat, lng) {
+    const now = new Date();
+    const today = getSunTimes(now, lat, lng);
+    if (!today) { applySky(PALETTES.night); return; }
+
+    const yesterday = getSunTimes(new Date(now.getTime() - 86400000), lat, lng);
+    const tomorrow = getSunTimes(new Date(now.getTime() + 86400000), lat, lng);
+
+    const sunriseT = today.sunrise.getTime();
+    const sunsetT = today.sunset.getTime();
+    const nowT = now.getTime();
+
+    const TRANSITION = 60 * 60 * 1000; // 1h de transition aube/crépuscule
+
+    let skyColors, sunOpacity = 0, moonOpacity = 0, starsOpacity = 0;
+    let sunProgress = null, moonProgress = null;
+
+    if (nowT < sunriseT - TRANSITION) {
+      // Nuit (avant l'aube)
+      skyColors = PALETTES.night;
+      moonOpacity = 1; starsOpacity = 1;
+      // lune visible: trajectoire entre coucher d'hier et lever d'aujourd'hui
+      const ySet = yesterday ? yesterday.sunset.getTime() : sunsetT - 86400000;
+      moonProgress = (nowT - ySet) / (sunriseT - ySet);
+    } else if (nowT < sunriseT + TRANSITION) {
+      // Aube (transition nuit -> jour)
+      const t = (nowT - (sunriseT - TRANSITION)) / (2 * TRANSITION);
+      skyColors = [
+        interpolateColor(PALETTES.night[0], PALETTES.sunrise[0], t),
+        interpolateColor(PALETTES.night[1], PALETTES.sunrise[1], t),
+        interpolateColor(PALETTES.night[2], PALETTES.sunrise[2], t),
+        interpolateColor(PALETTES.night[3], PALETTES.sunrise[3], t)
+      ];
+      sunOpacity = Math.min(1, Math.max(0, t * 1.5));
+      moonOpacity = Math.max(0, 1 - t * 1.5);
+      starsOpacity = Math.max(0, 1 - t * 1.5);
+      sunProgress = Math.max(0, (nowT - sunriseT) / (sunsetT - sunriseT));
+    } else if (nowT < sunsetT - TRANSITION) {
+      // Jour
+      const dayLen = sunsetT - sunriseT;
+      const t = (nowT - sunriseT) / dayLen;
+      // transition douce sunrise->day proche du début, day->sunset proche de la fin
+      const tDay = Math.min(1, t / 0.15);
+      skyColors = [
+        interpolateColor(PALETTES.sunrise[0], PALETTES.day[0], tDay),
+        interpolateColor(PALETTES.sunrise[1], PALETTES.day[1], tDay),
+        interpolateColor(PALETTES.sunrise[2], PALETTES.day[2], tDay),
+        interpolateColor(PALETTES.sunrise[3], PALETTES.day[3], tDay)
+      ];
+      sunOpacity = 1;
+      sunProgress = t;
+    } else if (nowT < sunsetT + TRANSITION) {
+      // Crépuscule (transition jour -> nuit)
+      const t = (nowT - (sunsetT - TRANSITION)) / (2 * TRANSITION);
+      skyColors = [
+        interpolateColor(PALETTES.day[0], PALETTES.sunset[0], Math.min(1,t*1.3)),
+        interpolateColor(PALETTES.day[1], PALETTES.sunset[1], Math.min(1,t*1.3)),
+        interpolateColor(PALETTES.day[2], PALETTES.sunset[2], Math.min(1,t*1.3)),
+        interpolateColor(PALETTES.day[3], PALETTES.sunset[3], Math.min(1,t*1.3))
+      ];
+      // puis crépuscule -> nuit dans la seconde moitié
+      if (t > 0.5) {
+        const t2 = (t - 0.5) * 2;
+        skyColors = [
+          interpolateColor(PALETTES.sunset[0], PALETTES.night[0], t2),
+          interpolateColor(PALETTES.sunset[1], PALETTES.night[1], t2),
+          interpolateColor(PALETTES.sunset[2], PALETTES.night[2], t2),
+          interpolateColor(PALETTES.sunset[3], PALETTES.night[3], t2)
+        ];
+      }
+      sunOpacity = Math.max(0, 1 - t * 1.5);
+      moonOpacity = Math.min(1, Math.max(0, t * 1.5));
+      starsOpacity = Math.min(1, Math.max(0, t * 1.5));
+      sunProgress = Math.min(1, (nowT - sunriseT) / (sunsetT - sunriseT));
+      const tSet = tomorrow ? tomorrow.sunrise.getTime() : sunriseT + 86400000;
+      moonProgress = (nowT - sunsetT) / (tSet - sunsetT);
+    } else {
+      // Nuit (après le crépuscule)
+      skyColors = PALETTES.night;
+      moonOpacity = 1; starsOpacity = 1;
+      const tSet = tomorrow ? tomorrow.sunrise.getTime() : sunriseT + 86400000;
+      moonProgress = (nowT - sunsetT) / (tSet - sunsetT);
+    }
+
+    applySky(skyColors);
+    sun.style.opacity = sunOpacity;
+    moon.style.opacity = moonOpacity;
+    if (stars) stars.style.opacity = starsOpacity;
+
+    if (sunProgress !== null) {
+      const pos = arcPosition(Math.min(1, Math.max(0, sunProgress)));
+      sun.style.top = pos.top;
+      sun.style.left = pos.left;
+    }
+    if (moonProgress !== null) {
+      const pos = arcPosition(Math.min(1, Math.max(0, moonProgress)));
+      moon.style.top = pos.top;
+      moon.style.left = pos.left;
+    }
+  }
+
+  function start(lat, lng) {
+    update(lat, lng);
+    setInterval(() => update(lat, lng), 60 * 1000); // recalcule chaque minute
+  }
+
+  // Géolocalisation avec fallback (Paris) si refusée/indisponible
+  const FALLBACK_LAT = 48.8566, FALLBACK_LNG = 2.3522;
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      pos => start(pos.coords.latitude, pos.coords.longitude),
+      () => start(FALLBACK_LAT, FALLBACK_LNG),
+      { timeout: 5000 }
+    );
+  } else {
+    start(FALLBACK_LAT, FALLBACK_LNG);
+  }
+})();
 
 </script>
